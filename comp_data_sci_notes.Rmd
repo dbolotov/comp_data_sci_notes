@@ -3,7 +3,7 @@ title: "Competitive Data Science Notes"
 output:
   html_document:
     theme: cerulean
-    highlight: textmate
+    highlight: tango
     fig_width: 6
     fig_height: 4
     toc: true
@@ -123,4 +123,64 @@ This is a set of notes for the Competitive Data Science course on Coursera.
 - One of the most useful examples of feature generation is interaction between categorical features. This is usually useful for linear models and kNN.
 - To implement an interaction between two features, first concatenate the feature values into a string (e.g., "1male", "2female"), and then apply one-hot encoding.
 
+### Datetime and coordinates
 
+### Handling missing values
+
+## Feature extraction from text and images
+
+### Bag of words
+
+### Word2vec, CNN
+
+# Appendix 1 - Links
+
+## Week 1
+
+### Recap of main ML algorithms
+
+#### Links for solving the quiz
+- [Explanation of Random Forest](http://www.datasciencecentral.com/profiles/blogs/random-forests-explained-intuitively)
+- [Explanation/Demonstration of Gradient Boosting](http://arogozhnikov.github.io/2016/06/24/gradient_boosting_explained.html)
+- [Example of kNN](https://www.analyticsvidhya.com/blog/2014/10/introduction-k-neighbours-algorithm-clustering/)
+
+#### Additional materials and links
+- Overview of methods
+    - [Scikit-Learn (or sklearn) library](http://scikit-learn.org/)
+    - [Overview of k-NN (sklearn's documentation)](http://scikit-learn.org/stable/modules/neighbors.html)
+    - [Overview of Linear Models (sklearn's documentation)](http://scikit-learn.org/stable/modules/linear_model.html)
+    - [Overview of Decision Trees (sklearn's documentation)](http://scikit-learn.org/stable/modules/tree.html)
+    - [Overview of algorithms and parameters in H2O documentation](http://docs.h2o.ai/h2o/latest-stable/h2o-docs/data-science.html)
+
+- Additional tools
+    - [Vowpal Wabbit repository](https://github.com/JohnLangford/vowpal_wabbit)
+    - [XGBoost repository](https://github.com/dmlc/xgboost)
+    - [LightGBM repository](https://github.com/Microsoft/LightGBM)
+    - [Interactive demo of simple feed-forward Neural Net](http://playground.tensorflow.org/)
+    - Frameworks for Neural Nets: [Keras](https://keras.io/) , [PyTorch](http://pytorch.org/) , [TensorFlow](https://www.tensorflow.org/) , [MXNet](http://mxnet.io/) , [Lasagne](http://lasagne.readthedocs.io/)
+    - [Example from sklearn with different decision surfaces](http://scikit-learn.org/stable/auto_examples/classification/plot_classifier_comparison.html)
+    - [Arbitrary order factorization machines](https://github.com/geffy/tffm)
+
+### Software/hardware requirements
+#### Additional material and links
+- StandCloud Computing:
+    - [AWS](https://aws.amazon.com/), [Google Cloud](https://cloud.google.com/), [Microsoft Azure](https://azure.microsoft.com/)
+- AWS spot option:
+    - [Overview of Spot mechanism](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html)
+    - [Spot Setup Guide](http://www.datasciencebowl.com/aws_guide/)
+- Stack and packages:
+  - 
+
+
+### Feature preprocessing and generation with respect to models
+#### Additional material and links
+
+### Feature extraction from text and images
+#### Additional material and links
+
+
+
+    - []()
+    - []()
+    - []()
+    
