@@ -1,0 +1,22 @@
+---
+title: "Competitive Data Science Notes"
+output:
+  html_document:
+    theme: cerulean
+    highlight: textmate
+    fig_width: 6
+    fig_height: 4
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require("knitr")
+```
+
+## Introduction
+
+This is a set of notes for the Competitive Data Science course on Coursera.
+
+
