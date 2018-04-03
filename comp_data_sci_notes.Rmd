@@ -23,28 +23,25 @@ This is a set of notes for the Competitive Data Science course on Coursera.
 
 ## Families of ML Algorithms
 
-### Linear Models
-- separate objects with a plane
-- examples: Logistic regression, SVM
-- linear models with different loss functions
-- good for sparse, high-dimensional data
-- often, points cannot be separated by such a simple approach
+### Linear models
+- Examples: Logistic regression, SVM.
+- Separate objects with a plane.
+- Good for sparse, high-dimensional data.
+- Often, points cannot be separated by such a simple approach.
 
 ### Tree-based: Decision Tree, Random Forest, Gradient Boosted Decision Trees
-- recursively split spaces by lines parallel to an axis
-	  - this reduces the number of possible lines significantly
-- another way to look at it: a decision tree separates the data into boxes, and approximates the data in the boxes by constants.
-- very powerful general method for tabular data
-- hard to capture linear dependencies, since this requires a lot of splits
-	  - ex: 2 classes that can be separated by a diagonal line will require many vert/horizontal splits.
+- Recursively split data by lines parallel to an axis. This significantly reduces the number of possible lines.
+- Another way to look at it: a decision tree separates the data into boxes, and approximates the data in the boxes by constants.
+- Very powerful general method for tabular data
+- Hard to capture linear dependencies, since this requires a lot of splits. For example, 2 classes that can be separated by a diagonal line will require many vertical/horizontal splits.
 
 ### kNN-based methods
-- select class labels by majority vote of closest neighbors
-- features based on kNN are very informative
-- scikit-learn has implementation with algorithmic tricks to speed up calculation
+- Select class labels by majority vote of closest neighbors.
+- Features based on kNN are very informative.
+- `scikit-learn` has implementation with algorithmic tricks to speed up calculation.
 
 ### Neural Networks
-- produce smooth non-linear decision boundary
+- Produce smooth non-linear decision boundary.
 
 ### No Free Lunch Theorem
 - "There is no method which outperforms all others for all tasks" or "For every method we can construct a task for which this particular method will not be the best".
@@ -53,38 +50,37 @@ This is a set of notes for the Competitive Data Science course on Coursera.
 ## Feature preprocessing and generation with respect to models
 
 ### Numeric features
-- Some models depend on feature scale; some don't. 
 - Tree-based models do not depend on feature scale. 
 - NN, kNN, and linear models do depend on feature scale.
 	  - For linear models, regularization impact is proportional to feature scale.
 	  - For kNN, larger features are treated as more important.
 
 #### Preprocessing
-- preprocessing: scaling
-	  -  scaling to [0,1] interval (sklearn.preprocessing.MinMaxScaler)
+- Scaling:
+	  - Scaling to [0,1] interval (`sklearn.preprocessing.MinMaxScaler`)
 		    - X = (X - X.min()) / (X.max() - X.min())
-	  - scaling to have mean 0, std 1 (sklearn.preprocessing.StandardScaler)
-	  - scaling should be initially applied to all numeric features equally.
-	  - scaling params can be optimized (tuned) to boost features which seem to be more important.
-- preprocessing: outliers
-	  - to protect models from outliers, can clip feature values between lower and upper bounds (e.g., 1% and 99%). This is widely used in finanical data, and is called Winsorization.
-- preprocessing: rank transformation (scipy.stats.rankdata)
+	  - Scaling to have mean 0, std 1 (`sklearn.preprocessing.StandardScaler`)
+	  - Scaling should be initially applied to all numeric features equally.
+	  - Scaling params can be optimized (tuned) to boost features which seem to be more important.
+- Outliers
+	  - To protect models from outliers, can clip feature values between lower and upper bounds (e.g., 1% and 99%). This is widely used in finanical data, and is called Winsorization.
+- Rank transformation (`scipy.stats.rankdata`):
   	- set spaces between properly sorted values to be roughly equal.
-  	- Can be a better option than MinMaxScaler because the rank transform will move outliers closer to other objects.
+  	- Can be a better option than `MinMaxScaler` because the rank transform will move outliers closer to other objects.
   	- Can be used for kNN, NN, and linear models if there is no time to handle outliers manually.
   	- To apply rank transform to TEST data, need to store the mapping; alternatively, concatenate train and test sets before applying rank transform.
-- Preprocessing - other transforms that help linear models and especially NN
-  	- log transform (np.log(1+x))
-  	- raising to the power < 1 (np.sqrt(x + 2/3))
-  	- these transforms drag large values closer to the mean
+- Other transforms that help linear models and especially NN:
+  	- Log transform (`np.log(1+x)`)
+  	- Raising to the power < 1 (`np.sqrt(x + 2/3)`)
+  	- These transforms drag large values closer to the mean.
 - Additional ideas:
-  	- Train models on concatenated data frames produced by different preprocessings
+  	- Train models on concatenated data frames produced by different preprocessings.
   	- Mix models trained on differently preprocessed data.
 
 #### Feature generation
 - Sometimes, features can be engineered by prior knowledge.
 - GBDT models have difficulty with approximating multiplications and divisions. Adding new features that are linear combinations of other features can help make the model more robust with less trees.
-- Fractional part: if have a feature with numbers after a decimal (e.g., price), add a new feature that is just the fractional part (e.g., .23 is the fractional part of 1.23).
+- Fractional part: generate a new feature that is the fractional part of a feature with numbers after a decimal (e.g., .23 is the fractional part of 1.23).
 
 ### Categorical and ordinal features
 
@@ -94,11 +90,11 @@ This is a set of notes for the Competitive Data Science course on Coursera.
 
 #### Label encoding
 - The simplest way to encode a categorical feature is to map its values to different numbers. This is known as *label encoding*. This works with trees because a tree method can split features and extract most of the useful information in categories on its own. Non-tree-based methods cannot use label-encoded features effectively.
-- label encoding can be accomplished in the following ways:
+- Label encoding can be accomplished in the following ways:
   	- `sklearn.preprocessing.LabelEncoder` applies encoding in alphabetical order: [S,C,Q] -> [2,1,3].
   	- `Pandas.factorize` applies encoding in order of appearance: [S,C,Q] -> [1,2,3]
   		  - This is useful if the rows are sorted in some meaningful way.
-  	- frequency encoding: encode a feature via mapping values to their frequencies: [S,C,Q] -> [0.5,0.3,0.2]
+  	- Frequency encoding: encode a feature via mapping values to their frequencies: [S,C,Q] -> [0.5,0.3,0.2]
   		  - This preserves some information about distribution of the values.
   		  - If frequency of category is correlated with target value, a linear model will use this dependency.
   		  - A tree model may have a lower number of splits due to the correlation.
@@ -114,7 +110,7 @@ This is a set of notes for the Competitive Data Science course on Coursera.
 
 #### One-hot encoding
 - This is useful for linear models.
-- One-hot encoded features are already scaled.
+- One-hot encoded features are already scaled by definition.
 - For a data set with a few numeric features and many one-hot encoded features, it may be difficult for a tree model to use the numeric features efficiently. More precisely, tree models will slow down, not always improving on previous results.
 - If a categorical feature has too many unique values, one-hot encoding will add too many columns with zero values. Use sparse matrices to store this data efficiently.
 - Use `pandas.get_dummies` or `sklearn.preprocessing.OneHotEncoder`.
