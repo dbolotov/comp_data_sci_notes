@@ -120,8 +120,63 @@ This is a set of notes for the Competitive Data Science course on Coursera.
 - To implement an interaction between two features, first concatenate the feature values into a string (e.g., "1male", "2female"), and then apply one-hot encoding.
 
 ### Datetime and coordinates
+- Both these features differ significantly from numeric and categorical features.
+- Since we can interpret the meaning of datetime and coordinates, we can come up with specific ideas about feature generation.
+
+#### Datetime
+- Most new features generated from a datetime fall into two categories: time moments in a period, and time passed since a particular event.
+- Periodicity: day number in week, month, season, year, second, minute, hour. This is useful to capture repetitive patterns. Can also add non-common periodicity, e.g. when a patient receives medication every 3 days.
+- Time since:
+    - Row-independent; e.g. since 00:00:00 UTC, 1 January 1970
+    - Row-dependent; e.g. number of days left until next holiday, or time passed since last holiday.
+- Difference between dates: `datetime_feature_1 - datetime_feature_2`. E.g., for churn prediction, days since last purchase date or days since registration.
+- These new generated features will then need to be treated accordingly; e.g. label or one-hot encoding for categorical.
+
+#### Coordinates
+- If have geographical coordinates, can add new features like distance to the nearest shop, hospitals, schools, etc.
+- Divide a map into squares with a grid, and in each square find the most expensive flat. Then a new feature is the distance to this flat for each object in the square.
+- Organize the data into clusters. Use cluster centers as important points, and generate new features as distances to the clusters.
+- Find special areas, like an area with very old buildings, and add distance to this area as a feature.
+- Calculate aggregated statistics for the area surrounding an object: number of flats (interpreted as the area's popularity), mean real estate price (indicates how expensive the area is).
+- Trick for decision trees: can add slightly rotated coordinates as new features. This helps a model make more precise selections on a map. E.g., a street divides an area into high-cost and low-cost district. If the street is diagonal, this will require many splits; with rotated coordinates, this separation can be accomplished in one split. It can be hard to know which rotations to make, so we may want to add all rotations to 45 or 22.5 degrees.
 
 ### Handling missing values
+- Missing values can look like NaN, empty strings, or outliers like -999.
+- Sometimes, missing values can contain useful information.
+
+#### Finding replaced missing values
+- Missing values are sometimes already replaced in the data. One way to find such values is to plot a histogram. E.g., a historgram might show an smooth distribution for most numbers, but a large spike for a specific number. The number might be -1 or the mean value of the feature, which means missing values were replaced. 
+
+#### Missing value imputation
+- Three ways of dealing with Missing value imputation:
+  - Replace by some value outside the normal range (e.g., -999, -1).
+      - Pro: allows to take the missing value into a separate category.
+      - Con: linear and NN model performance can suffer.
+  - Replace with mean or median.
+    - Pro: can help NN and linear models.
+    - Con: for tree models, can be harder to select object which had missing value in the first place.
+  - Reconstruct value
+      - In time series, the rows of a dataset are not independent, and interpolation interpolation works well.
+      - For data that is not time series, there will usually be no proper logic to reconstruct MVs.
+- Feature generation
+    - Add a new "isnull" indicator feature, indicating whether a specific feature is null or NaN. This solves the problem with trees and NN while computing the mean or median. However, this method doubles the number of columns in the dataset.
+    - Be careful with replacing missing values before feature generation.
+        - When encoding a categorical feature together with a numeric feature, ignore missing values when calculating mean values for the numeric features.
+        - In general, avoid filling NaNs before feature generation since this can decrease the usefulness of the features.
+- XGBoost can handle missing values that are NaN, and this can sometimes change the score drastically.
+- Outliers can be treated as missing values when it makes sense.
+- Categories which are present in test data but not in train data should be treated as missing values. Encode such a feature with frequencies of occurrence in the concatenated train and test datasets.
+
+
+### Additional material and links
+- Feature preprocessing
+    - [Preprocessing in Sklearn](http://scikit-learn.org/stable/modules/preprocessing.html)
+    - [Andrew NG about gradient descent and feature scaling](https://www.coursera.org/learn/machine-learning/lecture/xx3Da/gradient-descent-in-practice-i-feature-scaling)
+    - [Feature Scaling and the effect of standardization for machine learning algorithms](http://sebastianraschka.com/Articles/2014_about_feature_scaling.html)
+
+- Feature generation
+    - [Discover Feature Engineering, How to Engineer Features and How to Get Good at It](https://machinelearningmastery.com/discover-feature-engineering-how-to-engineer-features-and-how-to-get-good-at-it/)
+    - [Discussion of feature engineering on Quora](https://www.quora.com/What-are-some-best-practices-in-Feature-Engineering)
 
 ## Feature extraction from text and images
 

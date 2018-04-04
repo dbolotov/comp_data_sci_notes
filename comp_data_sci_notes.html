@@ -275,9 +275,97 @@ titanic['enc'] = titanic.Embarked.map(encoding)</code></pre></li>
 </div>
 <div id="datetime-and-coordinates" class="section level3">
 <h3>Datetime and coordinates</h3>
+<ul>
+<li>Both these features differ significantly from numeric and categorical features.</li>
+<li>Since we can interpret the meaning of datetime and coordinates, we can come up with specific ideas about feature generation.</li>
+</ul>
+<div id="datetime" class="section level4">
+<h4>Datetime</h4>
+<ul>
+<li>Most new features generated from a datetime fall into two categories: time moments in a period, and time passed since a particular event.</li>
+<li>Periodicity: day number in week, month, season, year, second, minute, hour. This is useful to capture repetitive patterns. Can also add non-common periodicity, e.g. when a patient receives medication every 3 days.</li>
+<li>Time since:
+<ul>
+<li>Row-independent; e.g. since 00:00:00 UTC, 1 January 1970</li>
+<li>Row-dependent; e.g. number of days left until next holiday, or time passed since last holiday.</li>
+</ul></li>
+<li>Difference between dates: <code>datetime_feature_1 - datetime_feature_2</code>. E.g., for churn prediction, days since last purchase date or days since registration.</li>
+<li>These new generated features will then need to be treated accordingly; e.g. label or one-hot encoding for categorical.</li>
+</ul>
+</div>
+<div id="coordinates" class="section level4">
+<h4>Coordinates</h4>
+<ul>
+<li>If have geographical coordinates, can add new features like distance to the nearest shop, hospitals, schools, etc.</li>
+<li>Divide a map into squares with a grid, and in each square find the most expensive flat. Then a new feature is the distance to this flat for each object in the square.</li>
+<li>Organize the data into clusters. Use cluster centers as important points, and generate new features as distances to the clusters.</li>
+<li>Find special areas, like an area with very old buildings, and add distance to this area as a feature.</li>
+<li>Calculate aggregated statistics for the area surrounding an object: number of flats (interpreted as the area’s popularity), mean real estate price (indicates how expensive the area is).</li>
+<li>Trick for decision trees: can add slightly rotated coordinates as new features. This helps a model make more precise selections on a map. E.g., a street divides an area into high-cost and low-cost district. If the street is diagonal, this will require many splits; with rotated coordinates, this separation can be accomplished in one split. It can be hard to know which rotations to make, so we may want to add all rotations to 45 or 22.5 degrees.</li>
+</ul>
+</div>
 </div>
 <div id="handling-missing-values" class="section level3">
 <h3>Handling missing values</h3>
+<ul>
+<li>Missing values can look like NaN, empty strings, or outliers like -999.</li>
+<li>Sometimes, missing values can contain useful information.</li>
+</ul>
+<div id="finding-replaced-missing-values" class="section level4">
+<h4>Finding replaced missing values</h4>
+<ul>
+<li>Missing values are sometimes already replaced in the data. One way to find such values is to plot a histogram. E.g., a historgram might show an smooth distribution for most numbers, but a large spike for a specific number. The number might be -1 or the mean value of the feature, which means missing values were replaced.</li>
+</ul>
+</div>
+<div id="missing-value-imputation" class="section level4">
+<h4>Missing value imputation</h4>
+<ul>
+<li>Three ways of dealing with Missing value imputation:</li>
+<li>Replace by some value outside the normal range (e.g., -999, -1).
+<ul>
+<li>Pro: allows to take the missing value into a separate category.</li>
+<li>Con: linear and NN model performance can suffer.</li>
+</ul></li>
+<li>Replace with mean or median.
+<ul>
+<li>Pro: can help NN and linear models.</li>
+<li>Con: for tree models, can be harder to select object which had missing value in the first place.</li>
+</ul></li>
+<li>Reconstruct value
+<ul>
+<li>In time series, the rows of a dataset are not independent, and interpolation interpolation works well.</li>
+<li>For data that is not time series, there will usually be no proper logic to reconstruct MVs.</li>
+</ul></li>
+<li>Feature generation
+<ul>
+<li>Add a new “isnull” indicator feature, indicating whether a specific feature is null or NaN. This solves the problem with trees and NN while computing the mean or median. However, this method doubles the number of columns in the dataset.</li>
+<li>Be careful with replacing missing values before feature generation.
+<ul>
+<li>When encoding a categorical feature together with a numeric feature, ignore missing values when calculating mean values for the numeric features.</li>
+<li>In general, avoid filling NaNs before feature generation since this can decrease the usefulness of the features.</li>
+</ul></li>
+</ul></li>
+<li>XGBoost can handle missing values that are NaN, and this can sometimes change the score drastically.</li>
+<li>Outliers can be treated as missing values when it makes sense.</li>
+<li>Categories which are present in test data but not in train data should be treated as missing values. Encode such a feature with frequencies of occurrence in the concatenated train and test datasets.</li>
+</ul>
+</div>
+</div>
+<div id="additional-material-and-links" class="section level3">
+<h3>Additional material and links</h3>
+<ul>
+<li>Feature preprocessing
+<ul>
+<li><a href="http://scikit-learn.org/stable/modules/preprocessing.html">Preprocessing in Sklearn</a></li>
+<li><a href="https://www.coursera.org/learn/machine-learning/lecture/xx3Da/gradient-descent-in-practice-i-feature-scaling">Andrew NG about gradient descent and feature scaling</a></li>
+<li><a href="http://sebastianraschka.com/Articles/2014_about_feature_scaling.html">Feature Scaling and the effect of standardization for machine learning algorithms</a></li>
+</ul></li>
+<li>Feature generation
+<ul>
+<li><a href="https://machinelearningmastery.com/discover-feature-engineering-how-to-engineer-features-and-how-to-get-good-at-it/">Discover Feature Engineering, How to Engineer Features and How to Get Good at It</a></li>
+<li><a href="https://www.quora.com/What-are-some-best-practices-in-Feature-Engineering">Discussion of feature engineering on Quora</a></li>
+</ul></li>
+</ul>
 </div>
 </div>
 <div id="feature-extraction-from-text-and-images" class="section level2">
@@ -330,7 +418,7 @@ titanic['enc'] = titanic.Embarked.map(encoding)</code></pre></li>
 </div>
 <div id="softwarehardware-requirements" class="section level3">
 <h3>Software/hardware requirements</h3>
-<div id="additional-material-and-links" class="section level4">
+<div id="additional-material-and-links-1" class="section level4">
 <h4>Additional material and links</h4>
 <ul>
 <li>StandCloud Computing:
@@ -349,13 +437,13 @@ titanic['enc'] = titanic.Embarked.map(encoding)</code></pre></li>
 </div>
 <div id="feature-preprocessing-and-generation-with-respect-to-models-1" class="section level3">
 <h3>Feature preprocessing and generation with respect to models</h3>
-<div id="additional-material-and-links-1" class="section level4">
+<div id="additional-material-and-links-2" class="section level4">
 <h4>Additional material and links</h4>
 </div>
 </div>
 <div id="feature-extraction-from-text-and-images-1" class="section level3">
 <h3>Feature extraction from text and images</h3>
-<div id="additional-material-and-links-2" class="section level4">
+<div id="additional-material-and-links-3" class="section level4">
 <h4>Additional material and links</h4>
 <pre><code>- []()
 - []()
