@@ -217,8 +217,260 @@ This is a set of notes for the Competitive Data Science course on Coursera.
     - [Discover Feature Engineering, How to Engineer Features and How to Get Good at It](https://machinelearningmastery.com/discover-feature-engineering-how-to-engineer-features-and-how-to-get-good-at-it/)
     - [Discussion of feature engineering on Quora](https://www.quora.com/What-are-some-best-practices-in-Feature-Engineering)
 
+
+
 ## Feature extraction from text and images
 
-### Bag of words
+- Often in competitions, we have data like text or images. If only this kind of data is available, we can apply approach specific to this type of data. For example, we can use search engines to find text similar to that used in the Allen AI Challenge. For images, we can use CNN.
+- But if we have text or images as *additional* data, we must craft specific features that can be added as complementary to our main data frame.
+  - The Titanic dataset has **name** column, which is more or less like text. To use it, we must first derive useful features from it.
+  - As a more serious example, we can predict if two online advertisements are duplicates - copies of each other with slight differences (Avito Duplicate Ads Detection competition). We can use images of the ads as complementary data.
 
-### Word2vec, CNN
+### Feature extraction from text - bag of words
+- This is the simplest approach.
+
+#### TF-IDF
+- Ceate a new column for each unique word in the data. Then, count the number of occurences of each word, and place this value in the appropriate column. Apply this operation to each row of the dataset. This can be done using  `sklearn.feature_extraction.text.CountVectorizer`.
+- We can also post-process the calculated metrics using predefined methods. This may be necessary because some models (kNN, linear, NN) depend on feature scale. So, the main goal of post-processing here is to make samples more comparable, and boost more important features while decreasing the scale of useless features.
+- One way to make the samples more comparable is to normalize the sum of values in each row. This counts not *occurences*, but *frequencies* of words. Thus, texts of different sizes will be more comparable. This is known as **Term frequency** transformation:
+    ```{}
+    tf = 1 / x.sum(axis=1)[:,None]
+    x = x * tf
+    ```
+- To boost more important features, we post-process our matrix by normalizing data column-wise. A good idea is to normalize each feature by the inverse fraction of documents which contain the exact word corresponding to this feature. In this case, features corresponding to frequent words will be scaled down compared to features corresponding to rare words. We can further improve this idea by taking a log of these normalization coefficients. This will decrease the significance of widespread words in the dataset and perform the required feature scaling. This is the purpose of **Inverse Document Frequency** transformation.
+    ```{}
+    idf = np.log(x.shape[0] / x(>0).sum(0))
+    x = x * idf
+    ```
+- TF and IDF are frequently used together, `sklearn.feature_extraction.text.TfidfVectorizer` in sklearn.
+- There are other variants of TF-IDF which may work better for certain datasets.
+
+#### N-grams
+- Add not only column corresponding to a word, but also columns corresponding to N consequent words.
+- This concept can also be applied to a sequence of chars. In cases with low N, we will have a column with each possible combination of N chars. For example, the number of bigrams for 28 unique symbols is equal to 28*28.
+- Sometimes it can be cheaper to have every possible char n-gram as a feature instead of having a feature for each unique word in the data.
+- Using char n-grams also helps model handle unseen words; for example, rare forms of already used words.
+- In sklearn, `sklearn.feature_extraction.text.CountVectorizer` has an appropriate parameter for using n-grams (`Ngram_range`). To change from word n-grams to char n-grams, use the the parameter named `analyzer`.
+
+#### Text preprocessing
+- Usually, we may want to preprocess text before applying bag-of-words; preprocessing can help bag-of-words drastically.
+- Lowercase: this reduces the number of redundant columns. `CountVectorizer` does this by default.
+- Lemmatization and stemming
+    - Stemming is a heuristic process that chops off the endings of words and thus unites derivationally related words. 
+        - democracy, democratic, democratization -> democr
+        - Saw -> s
+    - Lemmatization uses knowledge of vocabulary and morphological analysis of words.
+        - democracy, democratic, democratization -> democracy
+        - Saw -> see or saw (depending on context)
+- Stopwords
+    - These are words that are insignificant (articles or prepositions), or are so common that they do not help to solve our task.
+    - Most languages have pre-defined lists of stopwords which can be found on the internet or loaded from `NLTK` in python. `CountVectorizer` in sklearn also has a parameter `max_df` related to stopwords.
+
+#### Pipeline for applying BOW
+1. Preprocessing: lowercase, stemming, lemmatization, stopwords
+2. N-grams can help to use local context
+3. Postprocessing: TFiDF
+
+
+### Feature extraction from text - word2vec
+- Just as with the BOW approach, we want to get a vector representation of words and text. However, this approach is more concise.
+- Word2vec converts each word to some vector in some sophisticated space which usually has 100's of dimensions. To learn the word embedding, word2vec uses nearby words. Different words that are often used in the same context will be very close in this vector representation, which will benefit our models.
+- We can also apply basic operations like addition and subtraction on these vectors and expect the result of such operations to be interpretable. E.g., king + woman + man = queen.
+- There are several implementations of this embedding approach besides Word2vec:
+  - Words: Glove (global vector for word representation), FastText, etc.
+  - Sentences: Complications may occur if we need to derive vectors for sentences. Here we may take different approaches. For example, we can calculate the mean or sum of the word vectors. Or, we can use Doc2vec.
+- Training word2vec can take a long time, and pretrained models are available (e.g., trained on Wikipedia). Training does not require target values; it only requires the text to extract context for each word.
+    - Note: all pre-processing techniques discussed earlier can be applied to text before training word2vec models.
+
+#### BOW and w2v comparison
+- BOW
+    - Vectors are very large.
+    - The meaning of each value of vector is known.
+- Word2vec
+    - Vectors are relatively small.
+    - Values in the vector can be interpreted only in some cases.
+    - Words with similar meaning often have similar embeddings. This is crucial in competitions.
+- Usually, BOW and w2v give different results, and can be used together in one solution.
+
+### Feature extraction from images
+
+- Similarly to w2v for words, CNNs give a compressed representation for images.
+
+#### Descriptors
+- Besides getting the final output of a network, outputs from the inner layers (*descriptors*) can also be used. 
+    - Descriptors from later layers are better to solve tasks similar to solve tasks similar to the one the network was trained on.
+    - Descriptors from early layers have more task-independent information.
+    - For example, if a CNN was trained on ImageNet, its later layers can be used in some car model classification task. But to use this network in some medicine-specific task, it is better to use an earlier layer, or even retrain the network from scratch.
+    
+#### Finetuning
+- Sometimes, we can slightly tune a network to recieve more suitable representations using target values associate with our images. In general, the process of pretrained model tuning is called *finetuning*.
+    - Finetuning, especially for small datasets, is usually better than training a standalone model on descriptors (it allows to tune all network parameters, and thus extract more effective image representations) or training a network from scratch (model can use domain knowledge already encoded in network parameters, which can lead to faster results and a faster retraining procedure).
+  
+#### Augmentation
+- Augmentation increases the number of images to train a better network.
+- Although augmentation is not as good as adding brand new images to a training set, this is still very useful.
+- Augmentation reduces overfitting and allows to train more robust models.
+- Examples of augmentation: crop, rotate, add noise.
+
+### Additional material and links
+- Feature extraction from text
+    - Bag of words
+        - [Feature extraction from text with Sklearn](http://scikit-learn.org/stable/modules/feature_extraction.html)
+        - [More examples of using Sklearn](https://andhint.github.io/machine-learning/nlp/Feature-Extraction-From-Text/)
+    - Word2vec
+        - [Tutorial to Word2vec](https://www.tensorflow.org/tutorials/word2vec)
+        - [Tutorial to word2vec usage](https://rare-technologies.com/word2vec-tutorial/)
+        - [Text Classification With Word2Vec](http://nadbordrozd.github.io/blog/2016/05/20/text-classification-with-word2vec/)
+        - [Introduction to Word Embedding Models with Word2Vec](https://taylorwhitten.github.io/blog/word2vec)
+- NLP Libraries
+    - [NLTK](http://www.nltk.org/)
+    - [TextBlob](https://github.com/sloria/TextBlob)
+- Feature extraction from images
+    - Pretrained models
+        - [Using pretrained models in Keras](https://keras.io/applications/)
+        - [Image classification with a pre-trained deep neural network](https://www.kernix.com/blog/image-classification-with-a-pre-trained-deep-neural-network_p11)
+- Finetuning
+    - [How to Retrain Inception's Final Layer for New Categories in Tensorflow](https://www.tensorflow.org/tutorials/image_retraining)
+    - [Fine-tuning Deep Learning Models in Keras](https://flyyufelix.github.io/2016/10/08/fine-tuning-in-keras-part2.html)
+
+
+# Week 2
+
+## Exploratory Data Analysis (EDA)
+
+### EDA: what and why?
+- EDA allows to:
+    - Better understand the data.
+    - Build intuition about the data.
+    - Generate hypotheses about new features.
+    - Find insights.
+- One of the main EDA tools is visualization. When we visualize the data, we immediately see patterns. 
+
+### Building intuition about the data
+
+#### Getting domain knowledge
+- It is preferable to understand what the aim is, what data we have, and how people usually tackle the specific kind of problem to build a baseline.
+- The first step would be searching the internet on the topic and making sure we understand the data.
+  - Example: when predicting advertising cost, look into Google Adwords.
+#### Checking if the data is intuitive
+- E.g. if there is a column with age data, check for strange outliers.
+- E.g. if number of clicks is higher than the number of impressions, something is wrong with that data row.
+- Such mistakes can be used to generate new features. E.g. for the advertising data, if the number of impressions is 0 but clicks is non-zero, add a new indicator column `is_incorrect` that is 1 when clicks > impressions.
+
+#### Understanding how the data was generated
+- What was the algorithm for sampling objects from the database? Maybe the competition host sampled the data at random, or they oversampled a particular class.
+- Were the train and test data generated with the same algorithm? If the train and test sets are different, we cannot use part of the train set for validation, since it will not be representative of the test set.
+- It is crucial to understand the data generation process to set up a proper validation scheme.
+
+### Exploring anonymized data
+
+- Sometimes, competition organizers do not want some information to be revealed, so they make an effort to export the data in a way that one could not get value out of it. Yet, all the features are preserved, and the ML model would be able to do its job.
+    - For example, if a company wants a model to classify its documents, but doesn't want to reveal the document content, it can replace all the word occurences with hash values of those words.
+- Things to try while exploring this data:
+    - Explore individual features:
+        - Guess the meaning of the columns.
+        - Guess the type of the column (categorical, numeric, text, date). 
+    - Explore feature relations:
+        - Find relations between pairs.
+        - Find feature groups.
+- Example on competition data:
+  - Build a quick random forest model and check feature importances.
+  - Check feature mean and standard deviation. If a feature was standard scaled (mean close to 1 and std close to 0), it may be possible to unscale.
+  - Check counts of unique feature values to see if any values are frequently repeated.
+- Helpul functions:
+    - `df.dtypes`: pandas function that guesses column types.
+    - `df.info`
+    - `x.value_counts()`
+    - `x.isnull()`
+
+### Visualizations
+
+- EDA is an art, but there are several tools.
+
+#### Tools for exploring individual features
+- Histograms
+    - Try to vary the number of bins, because histograms can be deceiving.
+    - Use transformations (like log) before plotting historam. This can reveal that the data has a specific distribution.
+    - If a particular value (like the mean) occurs very frequently, it may indicate that missing values were replaced. Can then use this information in various ways: convert back to NaN for XGBoost, add a new feature indicating NaN or not, replace with a different value, impute, etc.
+    - Use `plt.hist(x)`.
+- Plot index versus value
+    - Scatter plot row index versus feature value.
+    - Horizontal lines in this plot indicate a lot of repeated values ina  particular feature.
+    - Vertical lines indicate that the data may not be properly shuffled.
+    - Use `plt.plot(x, '.')`.
+- Plot index versus value with color coding for class labels.
+    - This shows whether a feature is correlated with class separation, and whether the data is shuffled.
+    - Use `plt.scatter(range(len(x)), x, c=y)`.
+- Check statistics
+    - Check mean, std, and percentiles.
+    - Use pandas `df.describe()`.
+- Other tools
+    - value counts: `x.value_counts()`.
+    - null: `x.isnull()`. Null patterns can be plotted as row index vs feature index, colored by description (NA, empty string, -1, very large number, -99999 (and less), 999, 99).
+
+#### Tools for exploring feature relations
+- Sometimes it's beneficial to look at feature pairs.
+- The best tool here is scatterplot: `plt.scatter(x1,x2)`. 
+    - Plot one feature against another, and color by class label for classification or target value for regression. Can also visualize a regression target value by point size.
+    - Check if the distributions of the train and test sets are the same. Plot two features from the train set and color by class, then plot the same features from the test set and color all test observations gray. For example, if the gray points are located in a region where there are no train points, this means that the train and test sets are in different distributions. In this case, make the same kind of plot for other feature pairs to rule out that this specific feature pair is not overfitted and that there is no bug in the code.
+    - If the data only has a small number of features, it is possible to plot all feature pairs at once using `pd.scatter_matrix(df)`.
+    - It is a good idea to look at scatter plots and histograms at the same time, since scatter plots give weak information about densities and histograms do not show feature interactions.
+- We can also compute some kind of distance between the feature columns and store them in a matrix of size num_of_features^2.
+    - For example, we can compute correlation between the columns using `df.corr()`, and plot it with `plt.matshow(...)`.
+    - We can also compute other numbers:
+        - How many times is one feature larger than the other?
+        - How many distinct combinations do features have in the dataset?
+    - If the matrix looks like a mess, it is possible to run a clustering (e.g. kmeans) on the matrix and reorder the features. This may visualize feature groups.
+
+#### Tools for exploring feature groups
+- A clustered feature matrix may have feature groups, and it is usually a good idea to generate new features based on the groups. E.g., some statistics calculated over the group may work well.
+- Calculate the statistic (e.g., mean value) of each feature, and then plot it against column index: `df.mean().plot(style='.')`.
+    - The plot may look random if the columns are shuffled, but may reveal a pattern when the columns are sorted based on the statistic: `df.mean().sort_values().plot(style='.')`.
+    - If there is a pattern, use the feature groups to generate new features.
+  
+### Data cleaning and other things to check
+
+It is important to understand that competition data can be only a part of the data that the organizers have. The organizers could provide a fraction of the observations they have, or a fraction of the features.
+
+#### Constant features
+- A feature can have only one constant value in both training and test sets, or a constant in the training set, and different values in the test set.
+- This could be due to the sampling procedure (E.g., the competition only has data from one particular year, while the full dataset spans several years).
+- Such features are not useful for the model, and should be removed.
+- Use `traintest.nunique(axis=1) == 1` to check.
+- If there are values that are only present in the test set, this situation needs to be handled properly. We need to decide if these values matter much or not. This can be checked with a separate validation set, comparing the prediction quality using observations with features with same values, and observations with new values. Then, we decide if we should remove this feature, or create a separate model that works with these new feature values.
+
+#### Duplicated features
+- Sometimes features are identical.
+- Use `traintest.T.drop_duplicates(0)` to drop duplicate columns.
+- If categorical features have duplicates but their levels have different names, drop the features using label encoding:
+    ```{}
+    for f in categorical_feats:
+        traintest[f] = traintest[f].factorize()
+    traintest.T.drop_duplicates()
+    ```
+
+#### Duplicated rows
+- If there are duplicate rows, check if they have the same label.
+- Duplicate rows may be the result of a mistake. Try to understand why.
+- Check if train and test sets have the same rows. We can manually set labels for the test rows that are present in the train set.
+
+#### Dataset shuffling
+- Check if the dataset is shuffled. If it is not, there is a high chance that there is a data leakage.
+- Plot a feature or target versus row index. Optionally, smooth the values using a running average. Also plot the mean of the feature vs the index on the same plot (this should be a horizontal line). If the data was shuffled properly, there should be a random spread around the mean value.
+    - In the example shown, the end of the train set has a lower rolling mean than the rest of the data. This may not necessarily generate a new feature, but is useful to understand.
+  
+#### Cool visualizations
+- Try to visualize every possible thing in the dataset, because visualizations will lead to magic features.
+
+### Additional material and links
+- Visualization tools
+    - [Seaborn](https://seaborn.pydata.org/)
+    - [Plotly](https://plot.ly/python/)
+    - [Bokeh](https://github.com/bokeh/bokeh)
+    - [ggplot](http://ggplot.yhathq.com/)
+    - [Graph visualization with NetworkX](https://networkx.github.io/)
+- Others
+    - [Biclustering algorithms for sorting corrplots](http://scikit-learn.org/stable/auto_examples/bicluster/plot_spectral_biclustering.html)
+
+
+  
