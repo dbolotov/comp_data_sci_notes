@@ -108,12 +108,10 @@ $(document).ready(function () {
 <ul>
 <li><a href="#introduction">Introduction</a></li>
 <li><a href="#week-1">Week 1</a><ul>
-<li><a href="#families-of-ml-algorithms">Families of ML Algorithms</a></li>
+<li><a href="#recap-of-main-machine-learning-algorithms">Recap of main machine learning algorithms</a></li>
+<li><a href="#softwarehardware-requirements">Software/hardware requirements</a></li>
 <li><a href="#feature-preprocessing-and-generation-with-respect-to-models">Feature preprocessing and generation with respect to models</a></li>
 <li><a href="#feature-extraction-from-text-and-images">Feature extraction from text and images</a></li>
-</ul></li>
-<li><a href="#appendix-1---links">Appendix 1 - Links</a><ul>
-<li><a href="#week-1-1">Week 1</a></li>
 </ul></li>
 </ul>
 </div>
@@ -124,8 +122,8 @@ $(document).ready(function () {
 </div>
 <div id="week-1" class="section level1">
 <h1>Week 1</h1>
-<div id="families-of-ml-algorithms" class="section level2">
-<h2>Families of ML Algorithms</h2>
+<div id="recap-of-main-machine-learning-algorithms" class="section level2">
+<h2>Recap of main machine learning algorithms</h2>
 <div id="linear-models" class="section level3">
 <h3>Linear models</h3>
 <ul>
@@ -163,6 +161,64 @@ $(document).ready(function () {
 <ul>
 <li>“There is no method which outperforms all others for all tasks” or “For every method we can construct a task for which this particular method will not be the best”.</li>
 <li>Every method relies on some assumptions for it to work. If the assumptions fail, the method will perform poorly.</li>
+</ul>
+</div>
+<div id="links-for-solving-the-quiz" class="section level3">
+<h3>Links for solving the quiz</h3>
+<ul>
+<li><a href="http://www.datasciencecentral.com/profiles/blogs/random-forests-explained-intuitively">Explanation of Random Forest</a></li>
+<li><a href="http://arogozhnikov.github.io/2016/06/24/gradient_boosting_explained.html">Explanation/Demonstration of Gradient Boosting</a></li>
+<li><a href="https://www.analyticsvidhya.com/blog/2014/10/introduction-k-neighbours-algorithm-clustering/">Example of kNN</a></li>
+</ul>
+</div>
+<div id="additional-materials-and-links" class="section level3">
+<h3>Additional materials and links</h3>
+<ul>
+<li>Overview of methods
+<ul>
+<li><a href="http://scikit-learn.org/">Scikit-Learn (or sklearn) library</a></li>
+<li><a href="http://scikit-learn.org/stable/modules/neighbors.html">Overview of k-NN (sklearn’s documentation)</a></li>
+<li><a href="http://scikit-learn.org/stable/modules/linear_model.html">Overview of Linear Models (sklearn’s documentation)</a></li>
+<li><a href="http://scikit-learn.org/stable/modules/tree.html">Overview of Decision Trees (sklearn’s documentation)</a></li>
+<li><a href="http://docs.h2o.ai/h2o/latest-stable/h2o-docs/data-science.html">Overview of algorithms and parameters in H2O documentation</a></li>
+</ul></li>
+<li>Additional tools
+<ul>
+<li><a href="https://github.com/JohnLangford/vowpal_wabbit">Vowpal Wabbit repository</a></li>
+<li><a href="https://github.com/dmlc/xgboost">XGBoost repository</a></li>
+<li><a href="https://github.com/Microsoft/LightGBM">LightGBM repository</a></li>
+<li><a href="http://playground.tensorflow.org/">Interactive demo of simple feed-forward Neural Net</a></li>
+<li>Frameworks for Neural Nets: <a href="https://keras.io/">Keras</a> , <a href="http://pytorch.org/">PyTorch</a> , <a href="https://www.tensorflow.org/">TensorFlow</a> , <a href="http://mxnet.io/">MXNet</a> , <a href="http://lasagne.readthedocs.io/">Lasagne</a></li>
+<li><a href="http://scikit-learn.org/stable/auto_examples/classification/plot_classifier_comparison.html">Example from sklearn with different decision surfaces</a></li>
+<li><a href="https://github.com/geffy/tffm">Arbitrary order factorization machines</a></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="softwarehardware-requirements" class="section level2">
+<h2>Software/hardware requirements</h2>
+<div id="additional-material-and-links" class="section level3">
+<h3>Additional material and links</h3>
+<ul>
+<li>StandCloud Computing:
+<ul>
+<li><a href="https://aws.amazon.com/">AWS</a>, <a href="https://cloud.google.com/">Google Cloud</a>, <a href="https://azure.microsoft.com/">Microsoft Azure</a></li>
+</ul></li>
+<li>AWS spot option:
+<ul>
+<li><a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html">Overview of Spot mechanism</a></li>
+<li><a href="http://www.datasciencebowl.com/aws_guide/">Spot Setup Guide</a></li>
+</ul></li>
+<li>Stack and packages:
+<ul>
+<li><a href="https://www.scipy.org/">Basic SciPy stack (ipython, numpy, pandas, matplotlib)</a></li>
+<li><a href="http://jupyter.org/">Jupyter Notebook</a></li>
+<li><a href="https://github.com/danielfrg/tsne">Stand-alone python tSNE package</a></li>
+<li>Libraries to work with sparse CTR-like data: <a href="http://www.libfm.org/">LibFM</a>, <a href="https://www.csie.ntu.edu.tw/~cjlin/libffm/">LibFFM</a></li>
+<li>Another tree-based method: RGF (<a href="https://github.com/baidu/fast_rgf">implemetation</a>, <a href="https://arxiv.org/pdf/1109.0887.pdf">paper</a>)</li>
+<li>Python distribution with all-included packages: <a href="https://www.continuum.io/what-is-anaconda">Anaconda</a></li>
+<li><a href="https://tomaugspurger.github.io/">Blog “datas-frame” (contains posts about effective Pandas usage)</a></li>
+</ul></li>
 </ul>
 </div>
 </div>
@@ -351,7 +407,7 @@ titanic['enc'] = titanic.Embarked.map(encoding)</code></pre></li>
 </ul>
 </div>
 </div>
-<div id="additional-material-and-links" class="section level3">
+<div id="additional-material-and-links-1" class="section level3">
 <h3>Additional material and links</h3>
 <ul>
 <li>Feature preprocessing
@@ -375,80 +431,6 @@ titanic['enc'] = titanic.Embarked.map(encoding)</code></pre></li>
 </div>
 <div id="word2vec-cnn" class="section level3">
 <h3>Word2vec, CNN</h3>
-</div>
-</div>
-</div>
-<div id="appendix-1---links" class="section level1">
-<h1>Appendix 1 - Links</h1>
-<div id="week-1-1" class="section level2">
-<h2>Week 1</h2>
-<div id="recap-of-main-ml-algorithms" class="section level3">
-<h3>Recap of main ML algorithms</h3>
-<div id="links-for-solving-the-quiz" class="section level4">
-<h4>Links for solving the quiz</h4>
-<ul>
-<li><a href="http://www.datasciencecentral.com/profiles/blogs/random-forests-explained-intuitively">Explanation of Random Forest</a></li>
-<li><a href="http://arogozhnikov.github.io/2016/06/24/gradient_boosting_explained.html">Explanation/Demonstration of Gradient Boosting</a></li>
-<li><a href="https://www.analyticsvidhya.com/blog/2014/10/introduction-k-neighbours-algorithm-clustering/">Example of kNN</a></li>
-</ul>
-</div>
-<div id="additional-materials-and-links" class="section level4">
-<h4>Additional materials and links</h4>
-<ul>
-<li>Overview of methods
-<ul>
-<li><a href="http://scikit-learn.org/">Scikit-Learn (or sklearn) library</a></li>
-<li><a href="http://scikit-learn.org/stable/modules/neighbors.html">Overview of k-NN (sklearn’s documentation)</a></li>
-<li><a href="http://scikit-learn.org/stable/modules/linear_model.html">Overview of Linear Models (sklearn’s documentation)</a></li>
-<li><a href="http://scikit-learn.org/stable/modules/tree.html">Overview of Decision Trees (sklearn’s documentation)</a></li>
-<li><a href="http://docs.h2o.ai/h2o/latest-stable/h2o-docs/data-science.html">Overview of algorithms and parameters in H2O documentation</a></li>
-</ul></li>
-<li>Additional tools
-<ul>
-<li><a href="https://github.com/JohnLangford/vowpal_wabbit">Vowpal Wabbit repository</a></li>
-<li><a href="https://github.com/dmlc/xgboost">XGBoost repository</a></li>
-<li><a href="https://github.com/Microsoft/LightGBM">LightGBM repository</a></li>
-<li><a href="http://playground.tensorflow.org/">Interactive demo of simple feed-forward Neural Net</a></li>
-<li>Frameworks for Neural Nets: <a href="https://keras.io/">Keras</a> , <a href="http://pytorch.org/">PyTorch</a> , <a href="https://www.tensorflow.org/">TensorFlow</a> , <a href="http://mxnet.io/">MXNet</a> , <a href="http://lasagne.readthedocs.io/">Lasagne</a></li>
-<li><a href="http://scikit-learn.org/stable/auto_examples/classification/plot_classifier_comparison.html">Example from sklearn with different decision surfaces</a></li>
-<li><a href="https://github.com/geffy/tffm">Arbitrary order factorization machines</a></li>
-</ul></li>
-</ul>
-</div>
-</div>
-<div id="softwarehardware-requirements" class="section level3">
-<h3>Software/hardware requirements</h3>
-<div id="additional-material-and-links-1" class="section level4">
-<h4>Additional material and links</h4>
-<ul>
-<li>StandCloud Computing:
-<ul>
-<li><a href="https://aws.amazon.com/">AWS</a>, <a href="https://cloud.google.com/">Google Cloud</a>, <a href="https://azure.microsoft.com/">Microsoft Azure</a></li>
-</ul></li>
-<li>AWS spot option:
-<ul>
-<li><a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html">Overview of Spot mechanism</a></li>
-<li><a href="http://www.datasciencebowl.com/aws_guide/">Spot Setup Guide</a></li>
-</ul></li>
-<li>Stack and packages:</li>
-<li></li>
-</ul>
-</div>
-</div>
-<div id="feature-preprocessing-and-generation-with-respect-to-models-1" class="section level3">
-<h3>Feature preprocessing and generation with respect to models</h3>
-<div id="additional-material-and-links-2" class="section level4">
-<h4>Additional material and links</h4>
-</div>
-</div>
-<div id="feature-extraction-from-text-and-images-1" class="section level3">
-<h3>Feature extraction from text and images</h3>
-<div id="additional-material-and-links-3" class="section level4">
-<h4>Additional material and links</h4>
-<pre><code>- []()
-- []()
-- []()</code></pre>
-</div>
 </div>
 </div>
 </div>

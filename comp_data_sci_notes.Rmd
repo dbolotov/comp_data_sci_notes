@@ -21,7 +21,7 @@ This is a set of notes for the Competitive Data Science course on Coursera.
 
 # Week 1
 
-## Families of ML Algorithms
+## Recap of main machine learning algorithms
 
 ### Linear models
 - Examples: Logistic regression, SVM.
@@ -46,6 +46,45 @@ This is a set of notes for the Competitive Data Science course on Coursera.
 ### No Free Lunch Theorem
 - "There is no method which outperforms all others for all tasks" or "For every method we can construct a task for which this particular method will not be the best".
 - Every method relies on some assumptions for it to work. If the assumptions fail, the method will perform poorly.
+
+
+### Links for solving the quiz
+- [Explanation of Random Forest](http://www.datasciencecentral.com/profiles/blogs/random-forests-explained-intuitively)
+- [Explanation/Demonstration of Gradient Boosting](http://arogozhnikov.github.io/2016/06/24/gradient_boosting_explained.html)
+- [Example of kNN](https://www.analyticsvidhya.com/blog/2014/10/introduction-k-neighbours-algorithm-clustering/)
+
+
+### Additional materials and links
+- Overview of methods
+    - [Scikit-Learn (or sklearn) library](http://scikit-learn.org/)
+    - [Overview of k-NN (sklearn's documentation)](http://scikit-learn.org/stable/modules/neighbors.html)
+    - [Overview of Linear Models (sklearn's documentation)](http://scikit-learn.org/stable/modules/linear_model.html)
+    - [Overview of Decision Trees (sklearn's documentation)](http://scikit-learn.org/stable/modules/tree.html)
+    - [Overview of algorithms and parameters in H2O documentation](http://docs.h2o.ai/h2o/latest-stable/h2o-docs/data-science.html)
+- Additional tools
+    - [Vowpal Wabbit repository](https://github.com/JohnLangford/vowpal_wabbit)
+    - [XGBoost repository](https://github.com/dmlc/xgboost)
+    - [LightGBM repository](https://github.com/Microsoft/LightGBM)
+    - [Interactive demo of simple feed-forward Neural Net](http://playground.tensorflow.org/)
+    - Frameworks for Neural Nets: [Keras](https://keras.io/) , [PyTorch](http://pytorch.org/) , [TensorFlow](https://www.tensorflow.org/) , [MXNet](http://mxnet.io/) , [Lasagne](http://lasagne.readthedocs.io/)
+    - [Example from sklearn with different decision surfaces](http://scikit-learn.org/stable/auto_examples/classification/plot_classifier_comparison.html)
+    - [Arbitrary order factorization machines](https://github.com/geffy/tffm)
+
+## Software/hardware requirements
+### Additional material and links
+- StandCloud Computing:
+    - [AWS](https://aws.amazon.com/), [Google Cloud](https://cloud.google.com/), [Microsoft Azure](https://azure.microsoft.com/)
+- AWS spot option:
+    - [Overview of Spot mechanism](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html)
+    - [Spot Setup Guide](http://www.datasciencebowl.com/aws_guide/)
+- Stack and packages:
+    - [Basic SciPy stack (ipython, numpy, pandas, matplotlib)](https://www.scipy.org/)
+    - [Jupyter Notebook](http://jupyter.org/)
+    - [Stand-alone python tSNE package](https://github.com/danielfrg/tsne)
+    - Libraries to work with sparse CTR-like data: [LibFM](http://www.libfm.org/), [LibFFM](https://www.csie.ntu.edu.tw/~cjlin/libffm/)
+    - Another tree-based method: RGF ([implemetation](https://github.com/baidu/fast_rgf), [paper](https://arxiv.org/pdf/1109.0887.pdf))
+    - Python distribution with all-included packages: [Anaconda](https://www.continuum.io/what-is-anaconda)
+    - [Blog "datas-frame" (contains posts about effective Pandas usage)](https://tomaugspurger.github.io/)
 
 ## Feature preprocessing and generation with respect to models
 
@@ -183,55 +222,3 @@ This is a set of notes for the Competitive Data Science course on Coursera.
 ### Bag of words
 
 ### Word2vec, CNN
-
-# Appendix 1 - Links
-
-## Week 1
-
-### Recap of main ML algorithms
-
-#### Links for solving the quiz
-- [Explanation of Random Forest](http://www.datasciencecentral.com/profiles/blogs/random-forests-explained-intuitively)
-- [Explanation/Demonstration of Gradient Boosting](http://arogozhnikov.github.io/2016/06/24/gradient_boosting_explained.html)
-- [Example of kNN](https://www.analyticsvidhya.com/blog/2014/10/introduction-k-neighbours-algorithm-clustering/)
-
-#### Additional materials and links
-- Overview of methods
-    - [Scikit-Learn (or sklearn) library](http://scikit-learn.org/)
-    - [Overview of k-NN (sklearn's documentation)](http://scikit-learn.org/stable/modules/neighbors.html)
-    - [Overview of Linear Models (sklearn's documentation)](http://scikit-learn.org/stable/modules/linear_model.html)
-    - [Overview of Decision Trees (sklearn's documentation)](http://scikit-learn.org/stable/modules/tree.html)
-    - [Overview of algorithms and parameters in H2O documentation](http://docs.h2o.ai/h2o/latest-stable/h2o-docs/data-science.html)
-
-- Additional tools
-    - [Vowpal Wabbit repository](https://github.com/JohnLangford/vowpal_wabbit)
-    - [XGBoost repository](https://github.com/dmlc/xgboost)
-    - [LightGBM repository](https://github.com/Microsoft/LightGBM)
-    - [Interactive demo of simple feed-forward Neural Net](http://playground.tensorflow.org/)
-    - Frameworks for Neural Nets: [Keras](https://keras.io/) , [PyTorch](http://pytorch.org/) , [TensorFlow](https://www.tensorflow.org/) , [MXNet](http://mxnet.io/) , [Lasagne](http://lasagne.readthedocs.io/)
-    - [Example from sklearn with different decision surfaces](http://scikit-learn.org/stable/auto_examples/classification/plot_classifier_comparison.html)
-    - [Arbitrary order factorization machines](https://github.com/geffy/tffm)
-
-### Software/hardware requirements
-#### Additional material and links
-- StandCloud Computing:
-    - [AWS](https://aws.amazon.com/), [Google Cloud](https://cloud.google.com/), [Microsoft Azure](https://azure.microsoft.com/)
-- AWS spot option:
-    - [Overview of Spot mechanism](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html)
-    - [Spot Setup Guide](http://www.datasciencebowl.com/aws_guide/)
-- Stack and packages:
-  - 
-
-
-### Feature preprocessing and generation with respect to models
-#### Additional material and links
-
-### Feature extraction from text and images
-#### Additional material and links
-
-
-
-    - []()
-    - []()
-    - []()
-    
