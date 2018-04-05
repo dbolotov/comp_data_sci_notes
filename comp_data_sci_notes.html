@@ -115,6 +115,7 @@ $(document).ready(function () {
 </ul></li>
 <li><a href="#week-2">Week 2</a><ul>
 <li><a href="#exploratory-data-analysis-eda">Exploratory Data Analysis (EDA)</a></li>
+<li><a href="#validation">Validation</a></li>
 </ul></li>
 </ul>
 </div>
@@ -817,6 +818,148 @@ traintest.T.drop_duplicates()</code></pre></li>
 <li><a href="http://scikit-learn.org/stable/auto_examples/bicluster/plot_spectral_biclustering.html">Biclustering algorithms for sorting corrplots</a></li>
 </ul></li>
 </ul>
+</div>
+</div>
+<div id="validation" class="section level2">
+<h2>Validation</h2>
+<div id="validation-and-overfitting" class="section level3">
+<h3>Validation and overfitting</h3>
+<ul>
+<li>It is not a rare case in competitions that scores jump down on the leaderboard after private results are revealed. There are two main reasons for this:
+<ul>
+<li>Competitors could ignore the validation and select the submission which scored best against the public leaderboard.</li>
+<li>Sometimes competitions have no consistent public/private data split. Or, they have too little data in either public or private learderboard.</li>
+</ul></li>
+<li>While we as participants cant influence the competition’s organization, we can certainly make sure that we select our most appropriate submission to be evaluated on the private leaderboard.</li>
+<li>This section provides a systematic way to set up validation in a competition and tackle most common validation problems.</li>
+</ul>
+<div id="validation-1" class="section level4">
+<h4>Validation</h4>
+<ul>
+<li>With validation, we want to check if the model gives expected results on unseen data.</li>
+<li>Motivating example: predicting whether a patient will have a particular disease in the near future.
+<ul>
+<li>We need to be sure that the model we train will be applicable in the future, and what quality this model will have.</li>
+<li>Usually we divide the data we do have into two parts: train and validation. We fit the model on the train part and check its quality on the validation part.</li>
+<li>We should be ready for the possibility that unseen data from the future will differ from the train data.</li>
+</ul></li>
+<li>In competitions, we have a similar situation. The organizers give training data with all target values, and test data without target values. As before, we should split the data into train and validation parts.</li>
+<li>Furthermore, to ensure the competition spirit, the organizers split the test data into public and private parts. We see the scores for the public test set during the competition. The private test scores are released only after the competition is over. This ensures that we do not cheat using the test set (overfit).
+<ul>
+<li>For example, after data is already divided into train and val parts, repeated checking against the val set will produce better scores for some models simply by chance. If we continue to select best models, modify them, and again select the best, we will see constant improvements in the val score. But it doesn’t mean that the score on the test data. By repeating this over and over, we could overfit the validation set, or in terms of the competition, we could cheat the public leaderboard. Unrealistically good scores on the public learderboard will later jump down on private leaderboard.</li>
+</ul></li>
+<li>We want our model to capture patterns in the data, but only those patterns that generalize well between both train and test data.</li>
+</ul>
+</div>
+<div id="underfitting-and-overfitting" class="section level4">
+<h4>Underfitting and overfitting</h4>
+<ul>
+<li>To choose the best model, we should avoid both underfitting and overfitting.</li>
+<li><strong>Uderfitting</strong>: If the model is too simple, it can’t capture the underlying relationships, and will get poor results.</li>
+<li><strong>Overfitting</strong>: The complexity of the model can be increased to improve results. Prediction quality on the training data will go up, but if the model is fits the training data too much, it will start describing noise and patterns that don’t generalize to the test data.</li>
+<li>Note: The meaning of overfitting <em>in general</em> is slightly different than overfitting in ML competitions.
+<ul>
+<li>In general, we say that a model is overfitted if the quality is better on train than on test set.</li>
+<li>In competitions, we say that a model is overfitted only in the case that the quality on the test set is worse than expected.</li>
+<li>A different approach to the same concept: plot of error (loss) vs model complexity (plot not shown here).
+<ul>
+<li>Underfitting shows up as high error on both train and val sets.</li>
+<li>Overfitting shows up as low error on train and high error on val set.</li>
+<li>Somewhere in the middle is the model with best complexity - it has the lowest val error, and thus is expected to have the lowest error on the unseen test data.</li>
+<li>Note: in the plot, the training error is always lower than the validation error. This implies overfitting in the general sense, but does not imply overfitting in the context of competitions.</li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="validation-strategies" class="section level3">
+<h3>Validation strategies</h3>
+<ul>
+<li><strong>Note</strong>: The samples between train and validation must not overlap. If they do, we just can’t trust our validation. This is sometimes the case with repeated samples in the data. The predictions for these samples will be better, and more optimistic quality estimation overall. This will prevent us from selecting the best parameters for the model.
+<ul>
+<li>Overfitting is generally bad, but if we have duplicated samples in both train and test simulaneously, and we overfit, the validation score will deceive us into a belief that we are moving in the right direction.</li>
+</ul></li>
+<li>The following are three often-used validation strategies, and the main difference between them is the number of splits being done.</li>
+</ul>
+<div id="holdout" class="section level4">
+<h4>1. Holdout</h4>
+<ul>
+<li>Simple split that divides the data into two parts.</li>
+<li>Fit the model on train set, and evaluate its quality on the val set. Using scores from validation, select the best model. Before making a submission, retrain the model on all data that has labels.</li>
+<li>This method is a good choice for a large amount of data.</li>
+<li>In python:
+<ul>
+<li><code>ngroups = 1</code></li>
+<li><code>sklearn.model_selection.ShuffleSplit</code></li>
+</ul></li>
+</ul>
+</div>
+<div id="k-fold" class="section level4">
+<h4>2. K-fold</h4>
+<ul>
+<li>Repeated holdout. Split the data into k parts and iterate through them, using every part as a validation set only once. Then average scores over these k folds.</li>
+<li>There is a difference between k-fold and the above holdout strategy repeated k times. While it is possible to average the scores of k different holdout splits, some samples may never be in validation, while others may be placed there multiple times. The core idea of k-fold is that we want to use every sample for validation only once.</li>
+<li>This method is a good choice for a medium amount of data and we can get either a sufficiently big difference in quality, or different optimal parameters between folds.</li>
+<li>Example - estimating the complexity of k-fold compared to holdout. For k=5, and a holdout split of 80% train &amp; 20% test, if prediction takes an insignificant amount of time, k-fold is similar to holdout repeated 5 times. Thus, k-fold will be 5 times slower.</li>
+<li>In python:
+<ul>
+<li><code>ngroups = k</code></li>
+<li><code>sklearn.model_selection.Kfold</code></li>
+</ul></li>
+</ul>
+</div>
+<div id="leave-one-out" class="section level4">
+<h4>3. Leave-one-out</h4>
+<ul>
+<li>This is a special case of k-fold when k equals the number of samples in the data.</li>
+<li>Iterate through every sample in the data, each time using k-1 objects as the train data, and the one left-over object as the test data.</li>
+<li>This method can be helpful for when the data is small and the model is fast enough to retrain.</li>
+<li>In python:
+<ul>
+<li><code>ngroups = len(train)</code></li>
+<li><code>sklearn.model_selection.LeaveOneOut</code></li>
+</ul></li>
+</ul>
+</div>
+<div id="stratification" class="section level4">
+<h4>Stratification</h4>
+<ul>
+<li>We usually use k-fold or holdout on shuffled data. By shuffling data, we are trying to reproduce random train/validation splits. But sometimes, especially if the data is small, or target classes are highly imbalanced, a random split can fail.</li>
+<li>Stratification is a way to ensure that we get a similar target distribution over different folds, thus making validation more stable. It is useful for small datasets, unbalanced data sets (e.g. target average very close to 0 or 1 for binary classification), and multiclass classification (large amount of classes).
+<ul>
+<li>For datasets not in the above list, stratification will be quite similar to a shuffle (random) split.</li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="validation-strategies---document" class="section level3">
+<h3>Validation strategies - document</h3>
+<p>This section contains information about main validation strategies (schemes): holdout, K-Fold, LOO.</p>
+<p>The main rule you should know: never use data you train on to measure the quality of your model. The trick is to split all your data into training and validation parts.</p>
+<p>Below you will find several ways to validate a model.</p>
+<ol style="list-style-type: lower-alpha">
+<li>Holdout scheme:
+<ol style="list-style-type: decimal">
+<li>Split train data into two parts: partA and partB.</li>
+<li>Fit the model on partA, predict for partB.</li>
+<li>Use predictions for partB for estimating model quality. Find such hyper-parameters, that quality on partB is maximized.</li>
+</ol></li>
+<li>K-Fold scheme:
+<ol style="list-style-type: decimal">
+<li>Split train data into K folds.</li>
+<li>Iterate though each fold: retrain the model on all folds except current fold, predict for the current fold.</li>
+<li>Use the predictions to calculate quality on each fold. Find such hyper-parameters, that quality on each fold is maximized. You can also estimate mean and variance of the loss. This is very helpful in order to understand significance of improvement.</li>
+</ol></li>
+<li>LOO (Leave-One-Out) scheme:
+<ol style="list-style-type: decimal">
+<li>Iterate over samples: retrain the model on all samples except current sample, predict for the current sample. You will need to retrain the model N times (if N is the number of samples in the dataset).</li>
+<li>In the end you will get LOO predictions for every sample in the trainset and can calculate loss.</li>
+</ol></li>
+</ol>
+<p>Notice, that these are <em>validation</em> schemes are supposed to be used to estimate quality of the model. When you found the right hyper-parameters and want to get test predictions don’t forget to retrain your model using all training data.</p>
+</div>
+<div id="data-splitting-strategies" class="section level3">
+<h3>Data splitting strategies</h3>
 </div>
 </div>
 </div>
