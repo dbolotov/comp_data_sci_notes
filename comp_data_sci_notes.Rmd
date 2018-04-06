@@ -19,6 +19,8 @@ require("knitr")
 
 This is a set of notes for the Competitive Data Science course on Coursera.
 
+***
+
 # Week 1
 
 ## Recap of main machine learning algorithms
@@ -333,6 +335,7 @@ This is a set of notes for the Competitive Data Science course on Coursera.
     - [How to Retrain Inception's Final Layer for New Categories in Tensorflow](https://www.tensorflow.org/tutorials/image_retraining)
     - [Fine-tuning Deep Learning Models in Keras](https://flyyufelix.github.io/2016/10/08/fine-tuning-in-keras-part2.html)
 
+***
 
 # Week 2
 
@@ -571,4 +574,189 @@ c) LOO (Leave-One-Out) scheme:
 Notice, that these are *validation* schemes are supposed to be used to estimate quality of the model. When you found the right hyper-parameters and want to get test predictions don't forget to retrain your model using all training data.
 
 ### Data splitting strategies
+- This section covers more concrete examples of data splitting.
+
+#### Different approaches to validation (time series example)
+- Task: predict the number of customers for a shop for each day during the next month.
+- Two strategies are possible here: split using random choice, or make a time-based split (every row before a day as train, and every day after as test).
+  - If the train/validation split is made differently than the train/test split, the model created will be useless.
+- The **main rule of reliable validation**: set up validation to mimic the train/test split.
+- Suppose that we have a pool of models trained on different features and we select the best model for each type of validation. Will these models differ, and how significantly?
+    - It is certain that a model optimized using random splits (and so favoring points before and next target values) will perform poorly, since *next* observations for are not available for the test data (NaN fed to model, and model probably has not had much experience with NaNs).
+    - The model for the second type of validation was trained to predict many points ahead, and will not use adjacent target values.
+    - An important conclusion here is that the most useful features for one model are useless for another.
+- The generated features are not the only problem here. The actual train/test split is time-based. If we carefully generate features that draw attention to time-based patterns, will we get reliable validation with a random split? Or put another way, if we create features which are useful for a time-based split and are useless for a random split, is it correct to use random split to select the model?
+    - Consider the case when the target follows a linear trend (diagonal line plot). In general, the model predictions will be close to target mean value (the mean y value across all samples), calculated using the train data. For random-based val set, if the validation points are closer to the mean value compared to test set, we get a better score on validation than on test. For time-based val set, the val points are nearly as far as the test points for the target mean value, and the validation score will be similar to the test score. This shows that for incorrect validation, not only the features but even the target can lead to unrealistic estimation of the score.
+- In summary, different splitting strategies can differ significantly in the generated features, in the way that the model will rely on those features, and in some kind of target leak. To be able to great features, we absolutely must identify the train-test split made by the competition organizers, and reproduce it.
+  
+#### Splitting data into train and validation
+- Most splits fall into 3 categories:
+    - Random, row-wise
+    - Time-wise
+    - By id
+
+##### Random split by rows
+- This usually means that rows are fairly independent of each other.
+- There may be some dependency between rows. E.g., for a task to predict whether a person will pay off a loan, the data might have members of the same family, or people who work for the same company. If a family member is present in the train, and another member of the same family is present in test, a special feature can be devised just for this case.
+
+##### Time-based split
+- Treat everything before a specific data as train, and everything after as test.
+- In this approach, it is useful to make special features based on the target. E.g., for predicting the number of customers in the coming week, add features like the number of customers on the same day in the previous week, or the number of customers for the past month.
+- Moving window validation is a special case of the time-based split. This entails creating several train/val splits by moving the validation week up by one week forward across the training set, increasing the train data by that one week: start with 3 weeks train and use 4th week for val, then use 4 weeks for train and 5th week for val, etc.
+
+##### Id-based split
+- For example, a task to recommend music for completely new users. This means that the train and test sets have completely different sets of users. We can probably make the conclusion that features based on user history (e.g., number of songs listened in last week) will not help for new users.
+- Specific competition examples:
+    - Caterpillar: data in this competition was split on id, but the id was hidden from competitors comp.
+    - Nature concervancy; Intel & MobileODT Cervical Cancer Screening
+        - Train and test data did not have overlap on id, but id was hidden.
+        - Competitors came up with their own id schemes by clustering pictures.
+            - In the case where pictures were taken one after another, the images were quite similar.
+
+##### Combined methods
+- Splitting methods can sometimes be combined.
+- Example 1: for a task of predicting sales in shops, we can choose a split date for each shop independently instead of using one data for every shop in the data.
+- Example 2: for a dataset of search queries from multiple users and search engines, split the data by a combination of user id and search engine id.
+- Example 3: Home Depot product search relevance competition
+    - Task: estimate search relevancy
+    - Data consists of search terms and search results for those terms. Test set contained completely new terms. So, one shouldn't use a random split (favors more complicated models and overfitting) or a search-term-based split (leads to underfitting) for validation.
+    - In order to select optimal models, it was crucial to select the ratio of new search terms from train/test split.
+
+### Problems occurring during validation
+- Problems in validation can be divided into two groups:
+    - Problems during local validation: caused by inconsistency of the data (e.g. getting different parameters for different folds). Sovle by a more thorough validation.
+    - Problems during submission: scores on validation and on the leaderboard don't match. This is usually because we can't mimic the exact train/test split on our validation.
+
+#### Validation stage problems
+- Generally, the main problem is a significant difference in scores for different train/val splits.
+- Example: predicting sales in a shop in February. 
+    - Given target values for the whole previous year, and take the last month (January) as validation. 
+    - However, January has more holidays than February, causing people to buy more, thus leading to higher target values. MSE of predictions will be higher for Jan than Feb.
+    - This does not mean that the model will perform worse for February, at least in terms of overfitting.
+    - This example illustrates that this kind of behavior can sometimes be expected. But what if there is no clear reason why scores differ for different folds?
+    
+##### Causes of different scores and optimal parameters
+- Too little data: not enough observations to generalize the high amount of patterns and trends available in the data. In this case, a model will utilize only some general patterns, and for each train/val split, these patterns will partially differ.
+- The data is too diverse and inconsistent: for example, two similar samples with different target values can confuse a model.
+    - If one such sample is in train, while the other is in val, we can get a pretty high error for the second sample.
+    - If both samples are in validation, we will get smaller errors for them.
+    - For the Jan/Feb sales example from earlier, we know the natural reason for the difference in scores. Diversity can be reduced by validating on February from the previous year.
+
+##### Extensive validation
+- To solve the above two problems, we should do extensive validation:
+    - Increase k in k-fold (usually 5 is enough).
+    - Make several k-fold splits with different random seeds, and average the results.
+    - Use one set of splits to tune parameters, and another set of splits to check model quality.
+
+#### Submission stage problems
+- There are two cases of these issues:
+    - LB score is consistently higher/lower than validation score
+    - LB score is not correlated with validation score at all
+##### Causes of submission stage problems
+- We may already have quite different scores in k-fold. If we view the LB as another validation fold, then getting a different score on LB is not surpising in this case. We can also calculate the mean and std of the validation scores, and estimate if the LB score is expected.
+- Other causes:
+    - Too little data on public LB. In this case, trust your validation.
+    - Train and test data are from different distribution.
+        - Example: predicting heights from user photos. Train data contains only women, and test data contains only men. In this case predictions on train data are going to be close to the average height of women, and the model will have bad results on the test data.
+        - Sometimes, this problem can be solved by adjusting the solution during training. But sometimes, this problem can be solved *only* by adjsting the solution to the LB (through leaderboard probing). In this case, the strategy is to find the optimal constant prediction for train, and for test data. Then, shift the predictions by that difference. 
+            - For the height example, average height of women can be calculated from the train data.
+            - If the metric of competition is MSE, calculate average male height by sending two constant submissions, writing down a simple formula, and finding out that the average value for test is 70 inches.
+    - It is more common to find that the distributions are not completely different. For example, the train data can consist not *only* of women, but *mostly* of women, and test consists *mostly* of men.
+        - To deal with this situation, remember to mimic the train/test split. Force the validation set to have the same distribution as the test. This is true for getting both scores and parameters correct.
+- Example: Click-through rate prediction
+    - Train data (history of displayed ads) does not contain ads which were not shown. Test data consists of *every possible* ad. This is an example of different distributions between train and test, since train has a huge bias towards shown ads.
+    - To set up correct validation, complete the val set with rows of not-shown ads.
+- Example: predict whether a user will listen to a song predicted by the system.
+    - Test set contains only recommended songs. Train contains both recommended songs and songs users selected themselves.
+    - Adjust validation by filtering out songs selected by users.
+
+#### Leaderboard shuffle
+- LB shuffle is when participants' positions on public and private leaderboard drastically differ. Shuffle can be due to randomness, little amount of data, and different public/private distributions.
+
+##### Randomness
+- This is the case when all participants have very simlar scores (good or poor).
+- Example 1: Competitor scores are all very close, but many competitors overfit to public LB.
+- Example 2: Unpredictable financial data.
+
+##### Too little data overall, especially in private LB
+- The train set consisted of < 200 rows, and test consisted of < 400 rows. Shuffle was expected.
+
+##### Different public/private distributions
+- This is usually the case with time series data.
+- As competitors adjust their scores to the public LB, they overfit.
+- In this case, it is better to trust the validation.
+
+### Additional material and links
+- [Validation in Sklearn](http://scikit-learn.org/stable/modules/cross_validation.html)
+- [Advices on validation in a competition](http://www.chioka.in/how-to-select-your-final-models-in-a-kaggle-competitio/)
+
+## Data leakages
+
+### Basic data leaks
+- We define leakage in a very general sense as unexpected information in the data that allows us to make unrealistically good predictions. You may think of it as directly or indirectly adding ground truth into the data.
+- Data leaks are completely unusable in the real world. They provide too much signal and make the competition lose its main point and turn it into leak-hunting.
+- This section discusses the main types of data leaks that appear during machine learning, competition-specific LB probing, and concrete walkthroughs.
+
+### Leaks in time series
+- Check the train, public and private splits. If any one of them is not split on time, this is a data leak. In this case, unrealistic features (e.g., price next week) will be the most important.
+- Even if split by time, data still contains information about the future (in the test set)
+    - E.g., user history in CTR tasks, fundamental indicators in stock market prediction.
+- There are two ways to eliminate data leakages:
+    - Make rows from future inaccessable
+    - Test set with no features, only ID.
+
+### Unexpected information
+#### Metadata
+- These types of leaks are much harder to find.
+- Often, more than just train and test files are available in a competition (e.g., image or text archives).
+- In this case, we can access metadata: file creation data, image resolution, etc. This information may be connected to the target variable.
+- E.g., for a cat vs dog image classification competition, what if pictures of cats were always taken before dogs, or with a different camera? A good practice for the organizer would be to erase the metadata, resize the pictures, and change creation date.
+#### Information on IDs
+- It makes no sense to include IDs in a model, and it is assumed that the IDs are automatically generated.
+- In reality, an ID could be a hash of something not intended for disclosure, and may contain traces of information connected to the target variable.
+    - In the Caterpillar competition, adding ID as a feature slightly improved the result.
+
+#### Row order
+- In the trivial case, data may be shuffled by target variable.
+- Sometimes adding row number or relative number suddenly improves the score.
+- Example: In the TalkingData competition, rows next to each other usually had the same label.
+
+### Leaderboard probing
+- This is a competition technique tightly connected with data leaks.
+- There are two types of LB probing. The first is extracting all ground truth from the public LB. This gives a little more training data, and is relatively easy to do: in every submission, change only a small set of rows to unambiguously calculate ground truth for those rows from LB score.
+- This section mainly focuses on another type of LB probing. The public/private split is supposed to protect private part of test from information extraction, but is still vulnerable. Sometimes, it is possible to make submissions in such a way that will give out information about private data.
+- Categories tightly connected with 'id' are vulnerable to LB probing (e.g. company of user in RedHat competition; Year, Month, Week in WestNile competition).
+    - Example: a chunk of data with the same data for every row; rows with same IDs have the same target. Organizers split this chunk into public and private parts, but we still know that this particular chank has the same target for every row. After setting all the predictions close to zero in our submission for that particular chunk of data, we can expect 2 outcomes:
+        - If score improves, that means that ground truth in public is 0. Then the ground truth in private is 0 as well, since all rows in the chunk have the same target value.
+        - If score is worse, it means that the ground truth in both public and private is 1.
+    - This is an annoying, technical data leak. Even if it is released close to the competition deadline, there are not enough submissions to fully exploit it.
+    - Also, "consistent category" does not necessarily mean *exactly* the same target. It could be consistent in different ways. For example, the target label, could simply have the same distribution for private and public parts of the data.
+        - In Quora question pairs competition (binary classification evaluated by log loss), target variable had different distributions in train and test, but allegedly the same in public and private parts of the data.
+- Peculiar examples of data leakage
+    - Truly Native: predict whether the content of an HTML file is sponsored or not.
+        - There was a leak in the archive dates (sponsored and non-sponsored files were created in different periods of time). But do we really get rid of data leakage after erasing archive dates?
+        - No, because text in HTML files may be connected to dates in a lot of ways, from explicit time-stamps to news content. The real problem was not meta-data leak but rather data collection. Even without meta information, ML algorithms will focus on actually useless features - features that only act as proxies for the date.
+    - Expedia hotel recommendations: predict the hotel group a user is going to book.
+        - One feature was the distance between the user's city to a hotel. This is a huge data leak. Using this feature, it was possible to reverse-engineer true coordinates and simply map ground truth from train to test.
+    - Flavours of physics: predict something that has never been observed, using simulated data. Special statistical tests were implemented to punish models that exploit simulation flaws. But the tests could be bypassed to get a perfect score on the LB.
+    - Quora question pairs: predict whether pairs of items are duplicates.
+        - Like in all pairwise competitions, participants are not asked to evaluate *all* possible pairs - there is always some non-random subsampling. This subsampling is the cause of data leakage.
+        - Usually, organisers mostly hard-to-distinguish pairs. This leads to imbalance in item frequency: more frequent items have a higher possibility of being duplicates.
+        - We can create a connectivity matrix NxN, where N is the total number of items. If item i and item j appeared in a pair, put 1 in positions ij and ji. Treat the rows of this matrix as vector representations of every item. This means that we can compute similarities between those vectors. This trick works because two items have similar sets of neighbors, they have a high possibility of being duplicates.
+
+### Additional material and links
+- [Perfect score script by Oleg Trott](https://www.kaggle.com/olegtrott/the-perfect-score-script) -- used to probe leaderboard
+- [Page about data leakages on Kaggle](https://www.kaggle.com/wiki/Leakage)
+
+
+
+
+
+
+
+
+* * * 
+
+# Course summary - most important points
+- Set up the train/validation data split to mimic the train/test split of the competition.
   
