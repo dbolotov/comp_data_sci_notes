@@ -354,7 +354,8 @@ This is a set of notes for the Competitive Data Science course on Coursera.
 #### Getting domain knowledge
 - It is preferable to understand what the aim is, what data we have, and how people usually tackle the specific kind of problem to build a baseline.
 - The first step would be searching the internet on the topic and making sure we understand the data.
-  - Example: when predicting advertising cost, look into Google Adwords.
+    - Example: when predicting advertising cost, look into Google Adwords.
+
 #### Checking if the data is intuitive
 - E.g. if there is a column with age data, check for strange outliers.
 - E.g. if number of clicks is higher than the number of impressions, something is wrong with that data row.
@@ -557,17 +558,17 @@ The main rule you should know: never use data you train on to measure the qualit
 
 Below you will find several ways to validate a model.
 
-a) Holdout scheme:
+a) **Holdout scheme**:
     1. Split train data into two parts: partA and partB.
     2. Fit the model on partA, predict for partB.
     3. Use predictions for partB for estimating model quality. Find such hyper-parameters, that quality on partB is maximized.
 
-b) K-Fold scheme:
+b) **K-Fold scheme**:
     1. Split train data into K folds.
     2. Iterate though each fold: retrain the model on all folds except current fold, predict for the current fold.
     3. Use the predictions to calculate quality on each fold. Find such hyper-parameters, that quality on each fold is maximized. You can also estimate mean and variance of the loss. This is very helpful in order to understand significance of improvement.
 
-c) LOO (Leave-One-Out) scheme:
+c) **LOO (Leave-One-Out) scheme**:
     1. Iterate over samples: retrain the model on all samples except current sample, predict for the current sample. You will need to retrain the model N times (if N is the number of samples in the dataset).
     2. In the end you will get LOO predictions for every sample in the trainset and can calculate loss. 
 
@@ -772,7 +773,7 @@ $Loss(\hat{y_i};y_i) = |y_i - \hat{y_i}|$ if trend predicted correctly, $(y_i-\h
             - If the *trend* is guessed correctly, then the absolute difference between prediction and target is considered as the error. If model predicts next value to be higher than previous, but in reality it is lower, then the trend is predicted incorrectly, and the error is set to squared absolute difference.
             - This model cares more about predicting the correct trend than predicting the correct value.
             - In this competition, there were several time series to forecast, the horizon was long, and model predictions were unreliable.
-            - It was not possible to optimize the metric mentioned above, and so it was better to set all the predictions to $y_{last} + 10^-6$ or $y_{last} - 10^-6$ - same value for all the points we are to predict for each time series. The sign depends on the estimation of what is more likely: the values on the horizon being lower than the last known value, or to be higher.
+            - It was not possible to optimize the metric mentioned above, and so it was better to set all the predictions to $y_{last} + 10^{-6}$ or $y_{last} - 10^{-6}$ - same value for all the points we are to predict for each time series. The sign depends on the estimation of what is more likely: the values on the horizon being lower than the last known value, or to be higher.
 
 ### Regression metrics review I
 - Notation:
@@ -1051,7 +1052,7 @@ $$\bar{y} = \frac{1}{N}\Sigma_{i=1}^Ny_i$$
 #### RMSLE
 - This is easy to optimize due to the connection with MSE loss.
 - First, apply a transform to the target variables: $z_i = log(y_i+1)$.
-- Then, fit a model with MSE loss
+- Then, fit a model with MSE loss.
 
 
 

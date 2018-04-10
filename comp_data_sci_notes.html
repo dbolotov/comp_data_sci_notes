@@ -637,8 +637,15 @@ x = x * idf</code></pre></li>
 <h4>Getting domain knowledge</h4>
 <ul>
 <li>It is preferable to understand what the aim is, what data we have, and how people usually tackle the specific kind of problem to build a baseline.</li>
-<li>The first step would be searching the internet on the topic and making sure we understand the data.</li>
-<li>Example: when predicting advertising cost, look into Google Adwords. #### Checking if the data is intuitive</li>
+<li>The first step would be searching the internet on the topic and making sure we understand the data.
+<ul>
+<li>Example: when predicting advertising cost, look into Google Adwords.</li>
+</ul></li>
+</ul>
+</div>
+<div id="checking-if-the-data-is-intuitive" class="section level4">
+<h4>Checking if the data is intuitive</h4>
+<ul>
 <li>E.g. if there is a column with age data, check for strange outliers.</li>
 <li>E.g. if number of clicks is higher than the number of impressions, something is wrong with that data row.</li>
 <li>Such mistakes can be used to generate new features. E.g. for the advertising data, if the number of impressions is 0 but clicks is non-zero, add a new indicator column <code>is_incorrect</code> that is 1 when clicks &gt; impressions.</li>
@@ -945,19 +952,19 @@ traintest.T.drop_duplicates()</code></pre></li>
 <p>The main rule you should know: never use data you train on to measure the quality of your model. The trick is to split all your data into training and validation parts.</p>
 <p>Below you will find several ways to validate a model.</p>
 <ol style="list-style-type: lower-alpha">
-<li>Holdout scheme:
+<li><strong>Holdout scheme</strong>:
 <ol style="list-style-type: decimal">
 <li>Split train data into two parts: partA and partB.</li>
 <li>Fit the model on partA, predict for partB.</li>
 <li>Use predictions for partB for estimating model quality. Find such hyper-parameters, that quality on partB is maximized.</li>
 </ol></li>
-<li>K-Fold scheme:
+<li><strong>K-Fold scheme</strong>:
 <ol style="list-style-type: decimal">
 <li>Split train data into K folds.</li>
 <li>Iterate though each fold: retrain the model on all folds except current fold, predict for the current fold.</li>
 <li>Use the predictions to calculate quality on each fold. Find such hyper-parameters, that quality on each fold is maximized. You can also estimate mean and variance of the loss. This is very helpful in order to understand significance of improvement.</li>
 </ol></li>
-<li>LOO (Leave-One-Out) scheme:
+<li><strong>LOO (Leave-One-Out) scheme</strong>:
 <ol style="list-style-type: decimal">
 <li>Iterate over samples: retrain the model on all samples except current sample, predict for the current sample. You will need to retrain the model N times (if N is the number of samples in the dataset).</li>
 <li>In the end you will get LOO predictions for every sample in the trainset and can calculate loss.</li>
@@ -1299,7 +1306,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <li>If the <em>trend</em> is guessed correctly, then the absolute difference between prediction and target is considered as the error. If model predicts next value to be higher than previous, but in reality it is lower, then the trend is predicted incorrectly, and the error is set to squared absolute difference.</li>
 <li>This model cares more about predicting the correct trend than predicting the correct value.</li>
 <li>In this competition, there were several time series to forecast, the horizon was long, and model predictions were unreliable.</li>
-<li>It was not possible to optimize the metric mentioned above, and so it was better to set all the predictions to <span class="math inline">\(y_{last} + 10^-6\)</span> or <span class="math inline">\(y_{last} - 10^-6\)</span> - same value for all the points we are to predict for each time series. The sign depends on the estimation of what is more likely: the values on the horizon being lower than the last known value, or to be higher.</li>
+<li>It was not possible to optimize the metric mentioned above, and so it was better to set all the predictions to <span class="math inline">\(y_{last} + 10^{-6}\)</span> or <span class="math inline">\(y_{last} - 10^{-6}\)</span> - same value for all the points we are to predict for each time series. The sign depends on the estimation of what is more likely: the values on the horizon being lower than the last known value, or to be higher.</li>
 </ul></li>
 </ul></li>
 </ul></li>
@@ -1756,7 +1763,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <ul>
 <li>This is easy to optimize due to the connection with MSE loss.</li>
 <li>First, apply a transform to the target variables: <span class="math inline">\(z_i = log(y_i+1)\)</span>.</li>
-<li>Then, fit a model with MSE loss</li>
+<li>Then, fit a model with MSE loss.</li>
 </ul>
 <hr />
 </div>
