@@ -190,15 +190,15 @@ This is a set of notes for the Competitive Data Science course on Coursera.
 
 #### Missing value imputation
 - Three ways of dealing with Missing value imputation:
-  - Replace by some value outside the normal range (e.g., -999, -1).
-      - Pro: allows to take the missing value into a separate category.
-      - Con: linear and NN model performance can suffer.
-  - Replace with mean or median.
-    - Pro: can help NN and linear models.
-    - Con: for tree models, can be harder to select object which had missing value in the first place.
-  - Reconstruct value
-      - In time series, the rows of a dataset are not independent, and interpolation interpolation works well.
-      - For data that is not time series, there will usually be no proper logic to reconstruct MVs.
+    - Replace by some value outside the normal range (e.g., -999, -1).
+        - Pro: allows to take the missing value into a separate category.
+        - Con: linear and NN model performance can suffer.
+    - Replace with mean or median.
+        - Pro: can help NN and linear models.
+        - Con: for tree models, can be harder to select object which had missing value in the first place.
+    - Reconstruct value
+        - In time series, the rows of a dataset are not independent, and interpolation interpolation works well.
+        - For data that is not time series, there will usually be no proper logic to reconstruct MVs.
 - Feature generation
     - Add a new "isnull" indicator feature, indicating whether a specific feature is null or NaN. This solves the problem with trees and NN while computing the mean or median. However, this method doubles the number of columns in the dataset.
     - Be careful with replacing missing values before feature generation.
@@ -810,6 +810,7 @@ $Loss(\hat{y_i};y_i) = |y_i - \hat{y_i}|$ if trend predicted correctly, $(y_i-\h
 ##### R-squared metric
 $$R^2 = 1 - \frac{\frac{1}{N}\Sigma_{i=1}^N(y_i-\hat{y_i})^2}{\frac{1}{N}\Sigma_{i=1}^N(y_i-\bar{y_i})^2}= 1 - \frac{MSE}{\frac{1}{N}\Sigma_{i=1}^N(y_i-\bar{y_i})^2},$$
 $$\bar{y} = \frac{1}{N}\Sigma_{i=1}^Ny_i$$
+
 - To judge model quality by MSE and RMSE, take into account the properties of the dataset and the target.
 - When MSE of predictions is 0, $R^2$ is 1. When the model MSE equals to MSE of the constant model, $R^2$ is zero.
 - To optimize $R^2$, we can optimize MSE, since the constants in the $R^2$ equation do not matter for optimization.
