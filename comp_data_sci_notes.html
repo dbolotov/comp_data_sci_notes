@@ -118,6 +118,9 @@ $(document).ready(function () {
 <li><a href="#validation">Validation</a></li>
 <li><a href="#data-leakages">Data leakages</a></li>
 </ul></li>
+<li><a href="#week-3">Week 3</a><ul>
+<li><a href="#metrics-optimization">Metrics optimization</a></li>
+</ul></li>
 <li><a href="#course-summary---most-important-points">Course summary - most important points</a></li>
 </ul>
 </div>
@@ -1162,7 +1165,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <h3>Additional material and links</h3>
 <ul>
 <li><a href="http://scikit-learn.org/stable/modules/cross_validation.html">Validation in Sklearn</a></li>
-<li><a href="http://www.chioka.in/how-to-select-your-final-models-in-a-kaggle-competitio/">Advices on validation in a competition</a></li>
+<li><a href="http://www.chioka.in/how-to-select-your-final-models-in-a-kaggle-competitio/">Advice on validation in a competition</a></li>
 </ul>
 </div>
 </div>
@@ -1262,7 +1265,501 @@ traintest.T.drop_duplicates()</code></pre></li>
 <li><a href="https://www.kaggle.com/olegtrott/the-perfect-score-script">Perfect score script by Oleg Trott</a> – used to probe leaderboard</li>
 <li><a href="https://www.kaggle.com/wiki/Leakage">Page about data leakages on Kaggle</a></li>
 </ul>
+</div>
+</div>
+</div>
+<div id="week-3" class="section level1">
+<h1>Week 3</h1>
+<div id="metrics-optimization" class="section level2">
+<h2>Metrics optimization</h2>
+<div id="motivation" class="section level3">
+<h3>Motivation</h3>
+<div id="metrics" class="section level4">
+<h4>Metrics</h4>
+<ul>
+<li>Metrics are an essential part of any competition, and are used to evaluate submissions.</li>
+<li>There are many ways to measure the quality of an algorithm, and each organizer decides the most appropriate one for their particular problem.
+<ul>
+<li>E.g., an online shop is trying to measure the effectiveness of their website. Effectiveness needs to be formalized; need to define a metric to measure effectiveness. It can be the number of times a website was visited, or the number of times something was ordered using this website. The company decides which metric is the most important, and then tries to optimize it.</li>
+</ul></li>
+</ul>
+</div>
+<div id="motivation-and-take-away-points" class="section level4">
+<h4>Motivation and take-away points</h4>
+<ul>
+<li>It is really important to optimize the exact metric given in the competition, and not any other metric, since the chosen metric determines the optimal decision boundary.</li>
+<li>The biggest problem is that some metrics cannot be optimized efficiently; i.e. there is no simple enough way to find, say, the optimal hyperplane. In this case, sometimes we would train the model to optimize something different than the competition metric, but would need to apply various heuristics to improve the competition metric score.</li>
+<li>There is another case where we need to be smart about the metrics: it is when the train and test sets are different. In the lesson on leaks, we discussed leaderboard probing - we can, for example, check if the mean target value on public part of test set is the same as on train. If not, we would need to adapt our predictions to suit the test set better. This is a specific metric optimization technique we apply, because train and test sets are different.</li>
+<li>There can be more severe cases where an improved metric on the val set does not result in improvement on the test set. In this case, stop and think if there’s a different way to approach the problem.
+<ul>
+<li>In particular, time series can be very difficult to forecast, even if the validation was done correctly. This can be because the distribution in the future is very different, or there is not enough training data.
+<ul>
+<li>Example from a specific competition (using a trick to boost the score after modeling): <span class="math inline">\(Loss(\hat{y_i};y_i) = |y_i - \hat{y_i}|\)</span> if trend predicted correctly, <span class="math inline">\((y_i-\hat{y_i})^2\)</span> if trend predicted incorrectly
+<ul>
+<li>If the <em>trend</em> is guessed correctly, then the absolute difference between prediction and target is considered as the error. If model predicts next value to be higher than previous, but in reality it is lower, then the trend is predicted incorrectly, and the error is set to squared absolute difference.</li>
+<li>This model cares more about predicting the correct trend than predicting the correct value.</li>
+<li>In this competition, there were several time series to forecast, the horizon was long, and model predictions were unreliable.</li>
+<li>It was not possible to optimize the metric mentioned above, and so it was better to set all the predictions to <span class="math inline">\(y_{last} + 10^-6\)</span> or <span class="math inline">\(y_{last} - 10^-6\)</span> - same value for all the points we are to predict for each time series. The sign depends on the estimation of what is more likely: the values on the horizon being lower than the last known value, or to be higher.</li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="regression-metrics-review-i" class="section level3">
+<h3>Regression metrics review I</h3>
+<ul>
+<li>Notation:
+<ul>
+<li><span class="math inline">\(N\)</span> - number of objects</li>
+<li><span class="math inline">\(y \in R^N\)</span> - target values</li>
+<li>$ <span class="math inline">\(^N\)</span> - predictions</li>
+<li><span class="math inline">\(\hat{y_i} \in R\)</span> - prediction for i-th object</li>
+<li><span class="math inline">\(y_i \in R\)</span> - target for i-th object</li>
+</ul></li>
+</ul>
+<div id="mse-mean-square-error" class="section level4">
+<h4>MSE: Mean Square Error</h4>
+<ul>
+<li><span class="math inline">\(MSE = \frac{1}{N}\Sigma_{i=1}^N(y_i-\hat{y_i})^2\)</span></li>
+<li>This is the most common metric for regression problems. Used when there is no specific preference to the problem solution, or no other metric is known.</li>
+<li>MSE measures the average squared error of the predictions.</li>
+<li>Visualization: for a dataset (of 5 points), how will the error change if we fix all predictions but one to be perfect, and vary the value of one prediction?
+<ul>
+<li>The MSE plot will look like a parabola, with the lowest value being when the prediction equals the target.</li>
+</ul></li>
+<li>Baseline model
+<ul>
+<li>The simplest baseline model does not use any features, and just predicts a constant value <span class="math inline">\(\alpha\)</span> that minimizes the MSE of the dataset.</li>
+<li>The value <span class="math inline">\(\alpha\)</span> can be found by setting the derivative of MSE w.r.t. <span class="math inline">\(\alpha\)</span> to 0, and solve for <span class="math inline">\(\alpha\)</span>.</li>
+<li>The best <span class="math inline">\(\alpha\)</span> is the mean value of the target column.</li>
+</ul></li>
+<li>There are two other metrics related to MSE, discussed below.</li>
+</ul>
+<div id="rmse-root-mean-square-error" class="section level5">
+<h5>RMSE: Root mean square error</h5>
+<ul>
+<li><span class="math inline">\(RMSE = \sqrt{MSE}\)</span></li>
+<li>The square root is introduced to make the scale of the errors to be the same as the scale of the target.</li>
+<li>Similarities between MSE and RMSE:
+<ul>
+<li>Every minimizer of MSE is also a minimizer of RMSE, and vice-versa.</li>
+<li>More generally, <span class="math inline">\(MSE(a) &gt; MSE(b) \iff RMSE(a) &gt; RMSE(b)\)</span>.</li>
+<li>This works because the square root function is non-decreasing.</li>
+<li>This means that if the target metric is RMSE, we can still compare models using MSE, since MSE orders models in the same way as RMSE. We can also optimize with MSE instead of RMSE. In fact, MSE is easier to work with, so everybody uses MSE instead.</li>
+</ul></li>
+<li>Differences between MSE and RMSE:
+<ul>
+<li>There is a difference for gradient-based models: <span class="math inline">\(\frac{dRMSE}{d\hat{y_i}} = \frac{1}{2\sqrt{MSE}}\frac{dMSE}{d\hat{y_i}}\)</span>. The value <span class="math inline">\(\frac{1}{2\sqrt{MSE}}\)</span> does not depend on i. This means that traveling along MSE gradient is similar to traveling along RMSE gradient, but with a different learning rate which depends on MSE itself.</li>
+<li>So MSE and RMSE are not immediately interchangeable for gradient-based methods. You will probably need to adjust some parameters, like the learning rate.</li>
+</ul></li>
+</ul>
+</div>
+<div id="r-squared-metric" class="section level5">
+<h5>R-squared metric</h5>
+<p><span class="math display">\[R^2 = 1 - \frac{\frac{1}{N}\Sigma_{i=1}^N(y_i-\hat{y_i})^2}{\frac{1}{N}\Sigma_{i=1}^N(y_i-\bar{y_i})^2}= 1 - \frac{MSE}{\frac{1}{N}\Sigma_{i=1}^N(y_i-\bar{y_i})^2},\]</span> <span class="math display">\[\bar{y} = \frac{1}{N}\Sigma_{i=1}^Ny_i\]</span> - To judge model quality by MSE and RMSE, take into account the properties of the dataset and the target. - When MSE of predictions is 0, <span class="math inline">\(R^2\)</span> is 1. When the model MSE equals to MSE of the constant model, <span class="math inline">\(R^2\)</span> is zero. - To optimize <span class="math inline">\(R^2\)</span>, we can optimize MSE, since the constants in the <span class="math inline">\(R^2\)</span> equation do not matter for optimization.</p>
+</div>
+</div>
+<div id="mae-mean-absolute-error" class="section level4">
+<h4>MAE: Mean Absolute Error</h4>
+<ul>
+<li><span class="math inline">\(MAE = \frac{1}{N}\Sigma_{i=1}^N|y_i-\hat{y_i}|\)</span></li>
+<li>The error is an average of the absolute difference between the target and the predictions.</li>
+<li>This metric penalizes large errors <em>less</em> than MSE does, and so is not as sensitive to outliers as MSE.</li>
+<li>MAE is widely used in finance, where a $10 error is usually exactly 2 times worse than a $5 error. On the other hand, MSE thinks that a $10 error is 4 times worse than a $5 error. MSE is easier to justify and explain.</li>
+<li>MAE is <em>not</em> the same as MSE from an optimization perspective.</li>
+<li>Baseline model
+<ul>
+<li>The best constant <span class="math inline">\(\alpha\)</span> for MAE is the median of the target values.</li>
+</ul></li>
+<li>MAE gradients:
+<ul>
+<li>The gradient for MAE w.r.t. predictions is a step function: it equals -1 when <span class="math inline">\(\hat{y_i} &lt; y_i\)</span>, and 1 when <span class="math inline">\(\hat{y_i} &gt; y_i\)</span>.</li>
+<li>The gradient is <em>not defined</em> when the prediction is perfect (MAE is not differentiable), but this happens rarely.
+<ul>
+<li>Practically, check for this and return 0 when prediction is exactly equal to target, and return the true gradient otherwise.</li>
+</ul></li>
+<li>The second derivative is not defined at 0, and is 0 elsewhere.</li>
+</ul></li>
+</ul>
+</div>
+<div id="mae-vs-mse" class="section level4">
+<h4>MAE vs MSE</h4>
+<ul>
+<li>MAE is more robust than MSE (less sensitive to outliers), but this does not mean that it’s always better to use MAE.</li>
+<li>The question is - are there any <em>real</em> outliers in the dataset, or are there just unexpectely high values that should be treated like any other value? Outliers are usually mistakes, measurement errors, etc, but similarly-looking observations can be natural.</li>
+<li>Therefore, if the extreme values are <em>not</em> outliers, do not use a metric which will ignore them.</li>
+<li>To summarize: If sure that data has outliers, use MAE. If these are unexpected values that are still important, use MSE.</li>
+</ul>
+</div>
+</div>
+<div id="regression-metrics-review-ii" class="section level3">
+<h3>Regression Metrics Review II</h3>
+<ul>
+<li>Example problem: predicting the number of laptops sold by two shops.
+<ul>
+<li>Shop 1: predicted 9, sold 10, MSE = MAE = 1</li>
+<li>Shop 2: predicted 999, sold 1000, MSE = MAE = 1</li>
+<li>The error for shop 1 is much more critical than in the 2nd case, but MSE and MAE are both 1 for both shops. According to these metrics, the two errors are indistinguishable. This is because MAE and MSE both work with absolute errors. However, relative error can be more important, since an off-by-1 error for shop 1 is equivalent to an off-by-100 error for shop 2.</li>
+</ul></li>
+<li>On the error plots for MSE and MAE, we see that all the curves have the same shape for every target value (the curves are just shifted versions of each other). This is an indicator that the metric works with absolute errors.</li>
+</ul>
+<div id="from-mse-and-mae-to-mspe-and-mape" class="section level4">
+<h4>From MSE and MAE to MSPE and MAPE</h4>
+<ul>
+<li>Relative error preference can be expressed with MSPE (mean square percentage error) and MAPE (mean absolute percentage error):
+<ul>
+<li><span class="math inline">\(MSPE = \frac{100\%}{N}\Sigma_{i=1}^N(\frac{y_i-\hat{y_i}}{y_i})^2\)</span></li>
+<li><span class="math inline">\(MAPE = \frac{100\%}{N}\Sigma_{i=1}^N|\frac{y_i-\hat{y_i}}{y_i}|\)</span></li>
+</ul></li>
+<li>For each observation, the absolute error is devided by the target value, giving relative error.</li>
+<li>MSPE and MAPE can be thought of as weighted versions of MSE and MAE:
+<ul>
+<li>For MAPE, the weight of each sample is inversely proportional to its target.</li>
+<li>For MSPE, the weight of each sample is inversely proportional to target squared.</li>
+<li>Note that the weights do not sum up to 1.</li>
+</ul></li>
+</ul>
+</div>
+<div id="mspe-baseline" class="section level4">
+<h4>MSPE baseline</h4>
+<ul>
+<li>For MSE, the optimal <span class="math inline">\(\alpha\)</span> is the target mean.</li>
+<li>For MSPE, the optimal <span class="math inline">\(\alpha\)</span> is the weighted target mean.
+<ul>
+<li><span class="math inline">\(MSPE = \frac{100\%}{N}\Sigma_{i=1}^N(\frac{y_i-\alpha}{y_i})^2\)</span></li>
+</ul></li>
+</ul>
+</div>
+<div id="mape-baseline" class="section level4">
+<h4>MAPE baseline</h4>
+<ul>
+<li>For MAE, the optimal <span class="math inline">\(\alpha\)</span> is the target median.</li>
+<li>For MAPE, the optimal <span class="math inline">\(\alpha\)</span> is the weighted target median.
+<ul>
+<li><span class="math inline">\(MAPE = \frac{100\%}{N}\Sigma_{i=1}^N|\frac{y_i-\alpha}{y_i}|\)</span></li>
+</ul></li>
+</ul>
+</div>
+<div id="rmsle-root-mean-squared-logarithmic-error" class="section level4">
+<h4>RMSLE: Root Mean Squared Logarithmic Error</h4>
+<ul>
+<li>RMSLE is RMSE calculated in log space.
+<ul>
+<li>A constant is added because log(0) is undefined. The constant can be 1 or something else.</li>
+</ul></li>
+<li><span class="math inline">\(RMSLE = \sqrt{\frac{1}{N}\Sigma_{i=1}^N(log(y_i+1)-log(\hat{y_i}+1))^2} = RMSE(log(y_i+1),log(\hat{y_i}+1)) = \sqrt{MSE(log(y_i+1),log(\hat{y_i}+1))}\)</span></li>
+<li>Just like MAPE and MSPE, this metric cares more about relative errors than absolute ones.</li>
+<li>However, the error curves for RMSLE are asymmetric. For this metric, it is always better to predict more than the same amount less than target.</li>
+<li>The version of this metric without square root can also be used, but the rooted version is more common.</li>
+</ul>
+</div>
+<div id="rmsle-baseline" class="section level4">
+<h4>RMSLE baseline</h4>
+<ul>
+<li><span class="math inline">\(RMSLE = \sqrt{\frac{1}{N}\Sigma_{i=1}^N(log(y_i+1)-log(\alpha+1))^2} = RMSE(log(y_i+1),log(\alpha+1)) = \sqrt{MSE(log(y_i+1),log(\alpha+1))}\)</span></li>
+<li>The best constant in log space is a mean target value. We need to exponentiate it to get the answer.</li>
+</ul>
+</div>
+<div id="summary" class="section level4">
+<h4>Summary</h4>
+<ul>
+<li>MSE is biased towards large values, while MAE is much less biased.</li>
+<li>MSPE and MAPE are biased towards smaller targets, as they assign higher weight to objest with smaller targets.</li>
+<li>RMSLE is frequently considered a better metric than MAPE since it is less biased towards small targets, yet works with relative errors.</li>
+</ul>
+</div>
+</div>
+<div id="classification-metrics" class="section level3">
+<h3>Classification Metrics</h3>
+<ul>
+<li>Notation:
+<ul>
+<li><span class="math inline">\(N\)</span> - number of objects</li>
+<li><span class="math inline">\(L\)</span> - number of classes</li>
+<li><span class="math inline">\(y\)</span> - ground truth</li>
+<li><span class="math inline">\(\hat{y}\)</span> - predictions</li>
+<li><span class="math inline">\([a=b]\)</span> - indicator function</li>
+<li><em>Soft labels (soft predictions)</em>: classifier’s scores</li>
+<li><em>Hard labels (hard predictions)</em>:
+<ul>
+<li><span class="math inline">\(arg max_if_i(x)\)</span></li>
+<li><span class="math inline">\([f(x) &gt; b]\)</span>, b - threshold (for binary classification)</li>
+</ul></li>
+</ul></li>
+</ul>
+<div id="accuracy-score" class="section level4">
+<h4>Accuracy score</h4>
+<ul>
+<li>Accuracy = <span class="math inline">\(\frac{1}{N}\Sigma_{i=1}^N[\hat{y}=y_i]\)</span></li>
+<li>Accuracy is the fraction of correctly classified objects, ranging from 0 to 1.</li>
+<li>Need hard labels to calculate accuracy.</li>
+<li>Baseline (best constant to predict):
+<ul>
+<li>Predict the most frequent class.</li>
+<li>This can lead to high accuracy when predicting this constant on a dataset with imbalanced classes.</li>
+</ul></li>
+<li>While this score is intuitive, it is hard to optimize.</li>
+<li>Accuracy score also doesn’t care how confident the classifier is in the predictions, or what the soft predictions are.</li>
+<li>This is why it is usually preferred other metrics that are easier to optimize and that work with soft predictions.</li>
+</ul>
+</div>
+<div id="logarithmic-loss-logloss" class="section level4">
+<h4>Logarithmic loss (logloss)</h4>
+<ul>
+<li>Logloss tries to make the classifier output true posterior probabilities for the observation to be of a certain class.</li>
+<li>Logloss is written in different forms for binary and multiclass tasks.</li>
+<li><em>Binary</em>: LogLoss = <span class="math inline">\(-\frac{1}{N}\Sigma_{i=1}^Ny_ilog(\hat{y_i}) + (1-y_i)log(1-\hat{y_i}), y_i \in R, \hat{y_i} \in R\)</span>
+<ul>
+<li><span class="math inline">\(\hat{y_i}\)</span> is assumed to be a number in the range [0,1], and is the probability of an object to belong to class 1. So, <span class="math inline">\((1-\hat{y_i})\)</span> is the probability of the object to belong to class 0.</li>
+</ul></li>
+<li><em>Multiclass</em>: LogLoss = <span class="math inline">\(-\frac{1}{N}\Sigma_{i=1}^N\Sigma_{i=1}^Ly_{il}log(\hat{y_{il}}), y_i \in R^L, \hat{y_i} \in R^L\)</span>
+<ul>
+<li><span class="math inline">\(\hat{y_i}\)</span> is a vector of size <span class="math inline">\(L\)</span>, and its sum is exactly 1. The elements are the probabilities to belong to each of the classes.</li>
+</ul></li>
+<li><em>In practice</em>: LogLoss = <span class="math inline">\(-\frac{1}{N}\Sigma_{i=1}^N\Sigma_{i=1}^Ly_{il}log(min(max(\hat{y_{il}},10^{-15}),1-10^{-15}))\)</span>
+<ul>
+<li>To avoid NaNs in practice, predictions are first clipped to be not from 0 to 1, but from some small positive number to 1 minus some small positive number.</li>
+</ul></li>
+<li>Compared with absolute error, logloss strongly penalizes completely wrong answers, and prefers to make a lot of small mistakes rather than make few severe mistakes.</li>
+<li>Baseline:
+<ul>
+<li>LogLoss = <span class="math inline">\(-\frac{1}{N}\Sigma_{i=1}^Ny_ilog(\alpha) + (1-y_i)log(1-\alpha)\)</span></li>
+<li>Set <span class="math inline">\(\alpha_i\)</span> to the frequency of i-th class.</li>
+<li>For a dataset of 10 cats and 90 dogs, <span class="math inline">\(\alpha\)</span> = [0.1, 0.9].</li>
+</ul></li>
+</ul>
+</div>
+<div id="area-under-curve-auc-roc---binary-classification-only" class="section level4">
+<h4>Area under curve (AUC ROC) - binary classification only</h4>
+<ul>
+<li>This is a good default metric.</li>
+<li>This metric tries all possible thresholds and aggregates their scores.</li>
+<li>AUC ROC does not care about absolute value of the predictions, but depends on the order of the objects.</li>
+<li>There are several ways that AUC can be explained:
+<ul>
+<li>Area under curve</li>
+<li>Pairs ordering</li>
+</ul></li>
+</ul>
+<div id="area-under-curve" class="section level5">
+<h5>Area under curve</h5>
+<ul>
+<li>The ROC curve is constructed on a 2-d plot with false positives (FP) as the x-axis, and true positives (TP) as the y-axis. Start at (0,0), and move up/right while moving the threshold from 0 to 1.</li>
+<li>The area under the ROC curve is normalized by the total area of the square to give AUC.</li>
+<li>The AUC for a perfect classifier is 1. A threshold does not need to be specified, and there is no dependence on absolute values.</li>
+<li>In practice, AUC is plotted on a graph with a diagonal line plotted as well. The diagonal line is what AUC looks like if predictions are made at random, and can be thought of as a baseline.</li>
+</ul>
+</div>
+<div id="pairs-ordering" class="section level5">
+<h5>Pairs ordering</h5>
+<ul>
+<li>Consider all pairs of objects, such that one object is from class 0, and the other is from class 1.</li>
+<li>AUC is the probability that score for 1 will be higher than score for 0.</li>
+<li><p>In other words, AUC is the fraction of correctly ordered pairs: AUC = (# correctly ordered pairs)/(total number of pairs) = 1 - (# incorrectly ordered pairs)/(total number of pairs).</p></li>
+<li>Baseline:
+<ul>
+<li>AUC doesn’t depend on the value of the predictions, so all constants will lead to the same score.</li>
+<li>This score will be around 0.5.</li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="cohens-kappa" class="section level4">
+<h4>Cohen’s kappa</h4>
+<ul>
+<li>Recall that if we just predict the label of the most frequent class, we can already get a high accuracy score, and this can be misleading.</li>
+<li>We can introduce a new metric such that for accuracy of 1 it will give 1, and for baseline accuracy it will give 0:
+<ul>
+<li>my_score = 1 - (1-accuracy)/(1-baseline)</li>
+<li>Ex: for a dataset of 10 cats and 90 dogs, the baseline is 0.9 (most frequent class). For accuracy 1, my_score = 1. For accuracy 0.9, my_score = 0.</li>
+<li>Baselines are different for every dataset.</li>
+<li>This is similar to what R-squared does with MSE (normalizing).</li>
+</ul></li>
+<li>For Cohen’s Kappa, the baseline is calculated is the average of the accuracies for randomly shuffled hard predictions.
+<ul>
+<li>Ex: for a dataset of 10 cats and 90 dogs, predict 20 cats and 80 dogs at random: accuracy = <span class="math inline">\(0.2*0.1 + 0.8*0.9 = 0.74\)</span>.</li>
+</ul></li>
+<li>Cohen’s Kappa = 1 - (1 - accuracy)/(1 - <span class="math inline">\(p_e\)</span>), where <span class="math inline">\(p_e\)</span> is the average accuracy for permuted predictions.</li>
+<li><span class="math inline">\(p_e\)</span> can be computed analytically: <span class="math inline">\(p_e = \frac{1}{N^2}\Sigma_kn_{k1}n_{k2}\)</span>.
+<ul>
+<li>Multiply the empirical frequencies of predictions and ground truth labels for each class, and then sum them up.</li>
+</ul></li>
+<li>The score can also be rewritten in terms of errors: Cohen’s Kappa = 1 - error / (baseline error)</li>
+</ul>
+<div id="weighted-error-and-weighted-kappa" class="section level5">
+<h5>Weighted error and weighted kappa</h5>
+<ul>
+<li>The weighted error is calculated using an error weight matrix and confusion matrix.</li>
+<li>An error weight matrix contains the weight for each mistake.
+<ul>
+<li>Ex: for a dataset of 10 cats, 90 dogs, and 20 tigers, form a 3x3 matrix, and set the weight to be 10 for when predict “cat” or “dog”, but ground truth is “tiger”.</li>
+</ul></li>
+<li>A confusion matrix shows how our classifier distributes predictions over the objects.</li>
+<li>Weighted error = <span class="math inline">\(\frac{1}{const}\Sigma_{i,j}C_{i,j}W_{i,j}\)</span>
+<ul>
+<li>This is a sum of the element-wise matrix multiplication.</li>
+<li>A constant is used to normalize the result between 0 and 1, but it will cancel out later.</li>
+</ul></li>
+<li>Then weighted kappa is calculated as: weighted kappa = 1 - (weighted error) / (weighted baseline error).</li>
+</ul>
+</div>
+<div id="quadratic-and-linear-weighted-kappa" class="section level5">
+<h5>Quadratic and linear weighted kappa</h5>
+<ul>
+<li>In many cases, the weight matrices are defined in a very simple way.
+<ul>
+<li>For a classification problem with ordered labels, weights can be linear: <span class="math inline">\(w_{ij} = |i-j|\)</span>, or quadratic: <span class="math inline">\(w_{ij} = (i-j)^2\)</span>.</li>
+</ul></li>
+<li>The quadratic weighted kappa has been used in several competitions on Kaggle. It is usually explained as inter-rater agreement coefficient (how much the model predictions agree with ground truth raters). This is quite intuitive for medicine applications - how much the model agrees with professional doctors.</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="general-approaches-for-metrics-optimization" class="section level3">
+<h3>General approaches for metrics optimization</h3>
+<div id="loss-vs-metric" class="section level4">
+<h4>Loss vs metric</h4>
+<ul>
+<li>The <strong>target metric</strong> is a function what <em>we</em> want to optimize (evaluate the quality of our model).</li>
+<li><strong>Optimization loss</strong> is what the <em>model</em> optimizes.
+<ul>
+<li>No one really knows how to optimize metrics efficiently. Instead, we come up with proxy loss functions that are easy to optimize for a given model.</li>
+<li>For example, logloss is widely used as an optimization loss, while the accuracy score is how the solution is eventually evaluated.</li>
+</ul></li>
+<li>This can be viewed as expectation vs reality.</li>
+<li>Sometimes the model can optimize the target metric directly. E.g., most libraries can optimize RMSE out-of-the-box.</li>
+<li>Sometimes, we want to optimize metrics that are really hard or impossible to optimize directly. In this case, we set the model to optimize a loss that is different to the metric, but after the model is trained, we use hacks and heuristics to negate the discrepancy and adjust the model to better fit the target metric.</li>
+<li>The words <em>loss</em>, <em>cost</em>, and <em>objective</em> are used as synonyms.</li>
+</ul>
+</div>
+<div id="approaches-to-target-metric-optimization" class="section level4">
+<h4>Approaches to target metric optimization</h4>
+<ul>
+<li>Some metrics can be optimized directly. That is, we should just find a model that optimizes this metric and run it (set the model’s loss function to this metric). MSE and Logloss are implemented as loss function in many libraries.</li>
+<li>For some metrics that cannot be optimized directly, we can preprocess the train set and optimize another metric. For example, while MSPE cannot be optimized directly with XGBoost, we can resample the train set and optimize MSE instead. This also applies to MAPE and RMSLE.</li>
+<li>Sometimes we can optimize an incorrect metric, but postprocess the predictions to fit a competition metric better. Examples: Accuracy, Kappa.</li>
+<li>Sometimes it is possible to write a custom loss function. E.g., this is possible for XGBoost.</li>
+<li>Sometimes it is possible to use another metric, and use early stopping.
+<ul>
+<li>Optimize metric M1, and monitor metric M2 on the validation set. Stop when M2 score is best.</li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="regression-metrics-optimization" class="section level3">
+<h3>Regression metrics optimization</h3>
+<ul>
+<li>Early stopping can be used for every metric, so will not be described further here.</li>
+</ul>
+<div id="mse" class="section level4">
+<h4>MSE</h4>
+<ul>
+<li>MSE is the most commonly used metric for regression tasks. Almost every modeling software implements MSE as a loss function.</li>
+<li>Libraries that support MSE:
+<ul>
+<li>Tree-based
+<ul>
+<li><code>XGBoost</code>, <code>LightGBM</code></li>
+<li><code>sklearn.RandomForestRegressor</code></li>
+</ul></li>
+<li>Linear models
+<ul>
+<li><code>sklearn.&lt;&gt;Regression</code></li>
+<li><code>sklearn.SGDRegressor</code></li>
+<li>Vowpal Wabbit (<em>quantile loss</em>)</li>
+</ul></li>
+<li>Neural Nets
+<ul>
+<li>PyTorch, Keras, TensorFlow, etc.</li>
+</ul></li>
+</ul></li>
+<li>Synonyms: <em>L2 loss</em>.</li>
+</ul>
+</div>
+<div id="mae" class="section level4">
+<h4>MAE</h4>
+<ul>
+<li>Since the 2nd derivative of MAE is 0, XGBoost cannot optimize it.</li>
+<li>Libraries that support MAE:
+<ul>
+<li>Tree-based
+<ul>
+<li><code>LightGBM</code></li>
+<li><code>sklearn.RandomForestRegressor</code> (running time high compared to MSE)</li>
+<li>Some <code>sklearn</code> models have huber loss which is very similar to MAE, especially when the errors are large.</li>
+</ul></li>
+<li>Linear models
+<ul>
+<li>Vowpal Wabbit (<em>quantile loss</em>)
+<ul>
+<li>MAE is a special case of quantile loss.</li>
+</ul></li>
+</ul></li>
+<li>Neural Nets
+<ul>
+<li>PyTorch, Keras, TensorFlow, etc.
+<ul>
+<li>Can also be implemented by hand.</li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li>Synonyms: <em>L1</em>, <em>Median regression</em>.</li>
+<li>There are many ways to make MAE smooth. The most famous is Huber loss - this is a mix between MAE and MSE.
+<ul>
+<li>MSE is computed when the error is small, so we can safely approach 0 error.</li>
+<li>MAE is computed for large errors, giving robustness.</li>
+</ul></li>
+</ul>
+</div>
+<div id="mspe-and-mape" class="section level4">
+<h4>MSPE and MAPE</h4>
+<ul>
+<li>Can implement custom loss for XGBoost or a neural net, or can use early stopping.</li>
+</ul>
+<div id="using-sample-weights" class="section level5">
+<h5>Using sample weights</h5>
+<ul>
+<li>Many libraries accept sample weights.</li>
+<li>Sample weights:
+<ul>
+<li>MSPE: <span class="math inline">\(w_i = \frac{1/y_i^2}{\Sigma_{i=1}^N1/y_i^2}\)</span></li>
+<li>MAPE: <span class="math inline">\(w_i = \frac{1/y_i}{\Sigma_{i=1}^N1/y}\)</span></li>
+</ul></li>
+<li>To optimize MSPE, set the loss in the library to MSE, and use MSPE sample weights. Similarly for MAPE.</li>
+<li>Not every library supports sample weights.</li>
+</ul>
+</div>
+<div id="using-resampling" class="section level5">
+<h5>Using resampling</h5>
+<ul>
+<li>This approach does not depend on sample weights support.</li>
+<li>Resample the train set: <code>df.sample(weights = sample_weights)</code>.</li>
+<li>And use <em>any</em> model that optimizes MSE (MAE).</li>
+<li>The size of the new dataset is up to the user (e.g., can sample twice the original number).
+<ul>
+<li>Usually need to resample many times, fitting a model each time, and averaging the predictions for a more stable score.</li>
+</ul></li>
+<li>The test set stays as-is.</li>
+</ul>
+</div>
+<div id="log-scale" class="section level5">
+<h5>Log scale</h5>
+<ul>
+<li>If the errors are small, we can optimize the predictions in log scale.</li>
+<li>This approach was widely used on the Rossman competition on Kaggle.</li>
+</ul>
+</div>
+</div>
+<div id="rmsle" class="section level4">
+<h4>RMSLE</h4>
+<ul>
+<li>This is easy to optimize due to the connection with MSE loss.</li>
+<li>First, apply a transform to the target variables: <span class="math inline">\(z_i = log(y_i+1)\)</span>.</li>
+<li>Then, fit a model with MSE loss</li>
+</ul>
 <hr />
+</div>
 </div>
 </div>
 </div>
