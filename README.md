@@ -1,6 +1,6 @@
 ## About
 
-This is a set of notes for the Competitive Data Science course on Coursera. 
+This is a set of notes for the [Competitive Data Science](https://www.coursera.org/learn/competitive-data-science/) course on Coursera. 
 
 ## Rendered pages
 
