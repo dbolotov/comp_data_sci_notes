@@ -1057,6 +1057,47 @@ $$\bar{y} = \frac{1}{N}\Sigma_{i=1}^Ny_i$$
 
 ### Classification metrics optimization I
 
+#### Log loss
+- Log loss for classification is like MSE for regression: it is implemented everywhere.
+- $LogLoss = -\frac{1}{N}\Sigma_{i=1}^Ny_ilog(\hat{y}_i) + (1-y_i)log(1-\hat{y}_i)$
+- Implemented in the following libraries:
+    - Tree-based: XGboost, LightGBM
+    - Linear models
+        - `sklearn.LogisticRegression`
+        - `sklearn.SGDClassifier`
+        - Vowpal Wabbit
+    - Neural nets by default optimize log loss for classification.
+- Synonyms: *Logistic loss*.
+- Random Forest predictions turn out to be quite bad in terms of log loss. However, we can calibrate the predictions to better fit log loss.
+
+##### Probability calibration
+- We've mentioned several times that log loss requires a model to output posterior probabilities, but what does this mean?
+- This means that, e.g. if we take all objects with score ~ 0.8, then there will be exactly 4 times more positive objects (class 1) than negative objects (class 0).
+- If a classifier doesn't directly optimize log loss, its predictions should be calibrated.
+- Plot (not shown) has predictions (sorted by value) for the val set. The classifier's uncalibrated predictions are higher than target on the lower end, and lower than target on higher end. The calibrated predictions are much closer to the target on both ends.
+- 3 types of probability calibration are mentioned here:
+    - Platt scaling: fit Logistic Regression to the predictions (like in stacking)
+    - Isotonic regression: fit Isotonic Regression to the predictions
+    - Stacking: fit XGBoost or neural net to predictions
+- The basic idea is this: We can fit any classifier - it does not need to optimize log loss, it just needs to be good in terms of, for example, AUC. Then, we can fit another model (model 2) on top that will take the first model's predictions and calibrate them properly. Model 2 uses log loss as its optimization loss.
+
+#### Accuracy
+- Accuracy = $\frac{1}{N}\Sigma_{i=1}^N[\hat{y}_i = y_i]$
+- There is no easy recipe for direct optimization of accuracy.
+- In general, the recipe is the following:
+    - For binary classification: fit any metric and tune binarization threshold.
+    - For multiclass: fit any metric and tune parameters comparing models by their accuracy score, not by the metric that the models were actually optimizing (early stopping and cross validation by accuracy).
+- Plot (not shown) to get an intuition of why accuracy is hard to optimize: loss vs M, where M is signed distance to decision boundary (e.g., distance to hyperplane for linear model). Distance is considered to be positive if the class is predicted correctly, and negative if the object is located at the wrong side of the decision boundary.
+    - Zero-one loss (step function with 1 for 0<M and 0 for M>0) corresponds to accuracy score. This loss has gradient 0 w.r.t. predictions. Most learning algorithms require a non-zero gradient to fit. Otherwise, it is not clear how to change predictions to decrease the loss.
+    - Proxy losses have been invented that are upper bounds for the zero-one loss. If proxy loss is perfectly fit, then the accuracy will be perfect too. Such proxies are differentiable.
+    - Logistic loss is used in logistic regression.
+    - Hinge loss is used in SVM.
+- Recall that to obtain hard labels for a test object, we take argmax of soft predictions, picking the class with max score. If the task is binary and predictions sum up to 1, then argmax is equivalent to a threshold function: output 1 if pred > 0.5, else output 0.
+    - The threshold can be tuned with a grid search implemented with a for-loop.
+    - This means we can fit any sufficiently powerful model, and it does not matter exactly which loss (hinge, logistic, etc) the model optimizes. All we want from the model's predictions is the existence of a good threshold that separates the classes.
+    - If the classifier is ideally calibrated, then it is really returning posterior probabilities,
+    and for such a classifier, the threshold of 0.5 is optimal. But such classifiers are rare, so threshold tuning is useful.
+
 
 ### Classification metrics optimization II
 
