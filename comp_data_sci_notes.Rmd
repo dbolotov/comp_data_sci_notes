@@ -779,7 +779,7 @@ $Loss(\hat{y_i};y_i) = |y_i - \hat{y_i}|$ if trend predicted correctly, $(y_i-\h
 - Notation:
     - $N$ - number of objects
     - $y \in R^N$ - target values
-    - $\hat{y} \in $^N$ - predictions
+    - $\hat{y} \in R$ - predictions
     - $\hat{y_i} \in R$ - prediction for i-th object 
     - $y_i \in R$ - target for i-th object
 
@@ -878,7 +878,7 @@ $$\bar{y} = \frac{1}{N}\Sigma_{i=1}^Ny_i$$
 
 #### Summary
 - MSE is biased towards large values, while MAE is much less biased.
-- MSPE and MAPE are biased towards smaller targets, as they assign higher weight to objest with smaller targets.
+- MSPE and MAPE are biased towards smaller targets, as they assign higher weight to objects with smaller targets.
 - RMSLE is frequently considered a better metric than MAPE since it is less biased towards small targets, yet works with relative errors.
 
 ### Classification Metrics
@@ -1055,7 +1055,20 @@ $$\bar{y} = \frac{1}{N}\Sigma_{i=1}^Ny_i$$
 - First, apply a transform to the target variables: $z_i = log(y_i+1)$.
 - Then, fit a model with MSE loss.
 
+### Classification metrics optimization I
 
+
+### Classification metrics optimization II
+
+### Additional material and links
+
+## Mean encodings
+
+### Concept of mean encoding
+
+### Regularization
+
+### Extensions and generalizations
 
 
 

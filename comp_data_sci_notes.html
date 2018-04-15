@@ -120,6 +120,7 @@ $(document).ready(function () {
 </ul></li>
 <li><a href="#week-3">Week 3</a><ul>
 <li><a href="#metrics-optimization">Metrics optimization</a></li>
+<li><a href="#mean-encodings">Mean encodings</a></li>
 </ul></li>
 <li><a href="#course-summary---most-important-points">Course summary - most important points</a></li>
 </ul>
@@ -1322,7 +1323,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <ul>
 <li><span class="math inline">\(N\)</span> - number of objects</li>
 <li><span class="math inline">\(y \in R^N\)</span> - target values</li>
-<li>$ <span class="math inline">\(^N\)</span> - predictions</li>
+<li><span class="math inline">\(\hat{y} \in R\)</span> - predictions</li>
 <li><span class="math inline">\(\hat{y_i} \in R\)</span> - prediction for i-th object</li>
 <li><span class="math inline">\(y_i \in R\)</span> - target for i-th object</li>
 </ul></li>
@@ -1479,7 +1480,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <h4>Summary</h4>
 <ul>
 <li>MSE is biased towards large values, while MAE is much less biased.</li>
-<li>MSPE and MAPE are biased towards smaller targets, as they assign higher weight to objest with smaller targets.</li>
+<li>MSPE and MAPE are biased towards smaller targets, as they assign higher weight to objects with smaller targets.</li>
 <li>RMSLE is frequently considered a better metric than MAPE since it is less biased towards small targets, yet works with relative errors.</li>
 </ul>
 </div>
@@ -1772,8 +1773,29 @@ traintest.T.drop_duplicates()</code></pre></li>
 <li>First, apply a transform to the target variables: <span class="math inline">\(z_i = log(y_i+1)\)</span>.</li>
 <li>Then, fit a model with MSE loss.</li>
 </ul>
-<hr />
 </div>
+</div>
+<div id="classification-metrics-optimization-i" class="section level3">
+<h3>Classification metrics optimization I</h3>
+</div>
+<div id="classification-metrics-optimization-ii" class="section level3">
+<h3>Classification metrics optimization II</h3>
+</div>
+<div id="additional-material-and-links-6" class="section level3">
+<h3>Additional material and links</h3>
+</div>
+</div>
+<div id="mean-encodings" class="section level2">
+<h2>Mean encodings</h2>
+<div id="concept-of-mean-encoding" class="section level3">
+<h3>Concept of mean encoding</h3>
+</div>
+<div id="regularization" class="section level3">
+<h3>Regularization</h3>
+</div>
+<div id="extensions-and-generalizations" class="section level3">
+<h3>Extensions and generalizations</h3>
+<hr />
 </div>
 </div>
 </div>
