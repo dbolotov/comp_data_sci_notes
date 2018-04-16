@@ -1113,12 +1113,48 @@ $$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
 - Recall that AUC is the probability of the pair of objects to be ordered in the right way. So ideally, we want predictions for the green objects to be greater than predictions for the red ones. So instead of using single objects, we are working with pairs of objects, and instead of pointwise loss, we are using pairwise loss.
     - Pairwise loss takes predictions and labels for a pair of objects and computes their loss. Ideally, the loss is 0 when ordering is correct, and greater than 0 when the ordering is incorrect. In practice, different loss functions can be used. $$min\sum_i^N\sum_i^Nl_{pair}(\hat{y}_i,\hat{y}_j;y_i,y_j)$$
 - For example, we can use log loss: $$Loss = \frac{1}{N_0N_2}\sum_{j:y_j=1}^{N_1}\sum_{i:y_i=0}^{N_0}{log(prob(\hat{y}_j-\hat{y}_i))}$$
+    - The target for this pairwise loss is 1. So there is one term in the logloss objective instead of two.
+    - The $prob$ function is used to keep the difference between predictions for 0 to 1 range.
+- Availability in packages
+    - Tree-based: XGBoost, LightGBM
+    - Linear models: ??
+    - Neural nets: not out of the box, but is straightforward to implement.
+- Most people still use logloss as an optimization loss without any more postprocessing. For example, an XGBoost model trained with logloss can give an AUC score comparable to model trained with pairwise loss.
 
+#### Quadratic weighted Kappa
+- There are two methods to optimize quadratic weighted kappa. One is very common and easy. The second is not that common, and requires implementing a custom loss function for XGBoost or neural nets.
 
+##### Method 1
+- Recall that we are solving an ordered classification problem, and our labels can be thought of as integer ratings, say from 1 to 5. 
+- The task is classification, as we cannot output, e.g., 4.5 as an answer. 
+- We can treat this task as a regression and then convert the predictions into integer ratings in post-processing. 
+- Quadratic weights make Kappa similar to regression with MSE loss if we allow our predictions to take values between the labels (i.e., relax the predictions). But in fact, it is different to MSE. 
+- If relaxed, Kappa would be the following: $$Kappa(y,\hat{y}) \approx 1 - \frac{MSE}{hard to deal with part}$$ 
+- The hard-to-deal-with part is dependent on the predictions. Some users have the logic of since there's MSE in the nominator, we can optimize that and not care about the denominator. This is not the correct way to do it, but turns out to be useful in practice.
+- MSE gives float values, which must be converted to integers. The straightforward way is to round the predictions. But we can think of rounding as applying thresholds: e.g. if the value is greater than 3.5 and less than 4.5 then output 3. The thresholds can be tuned with grid search.
+- To summarize:
+    - Fit MSE loss.
+    - Find proper thresholds.
 
-
+##### Method 2
+- **On the Direct Maximization of Quadratic Weighted Kappa** describes a way to relax classification problems to regression but also deal with the denominator.
 
 ### Additional material and links
+
+#### Classification
+- [Evaluation Metrics for Classification Problems: Quick Examples + References](http://queirozf.com/entries/evaluation-metrics-for-classification-quick-examples-references)
+- [Decision Trees: “Gini” vs. “Entropy” criteria](https://www.garysieling.com/blog/sklearn-gini-vs-entropy-criteria)
+- [Understanding ROC curves](http://www.navan.name/roc/)
+    
+#### Ranking
+- [Learning to Rank using Gradient Descent](http://icml.cc/2015/wp-content/uploads/2015/06/icml_ranking.pdf) - original paper about pairwise method for AUC optimization
+- [Overview of further developments of RankNet](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/MSR-TR-2010-82.pdf)
+- [RankLib](https://sourceforge.net/p/lemur/wiki/RankLib/) (implemtations for the 2 papers from above)
+- [Learning to Rank Overview](https://wellecks.wordpress.com/2015/01/15/learning-to-rank-overview)
+
+#### Clustering
+- [Evaluation metrics for clustering](http://nlp.uned.es/docs/amigo2007a.pdf)
+
 
 ## Mean encodings
 
@@ -1136,4 +1172,4 @@ $$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
 
 # Course summary - most important points
 - Set up the train/validation data split to mimic the train/test split of the competition.
-  
+- Metrics optimization: the target metric is how submissions are scored. Optimization loss is what the model optimizes, and it is not always the same as the target metric that we want to optimize. Predictions can be post-processed to make them better fit the target metric.

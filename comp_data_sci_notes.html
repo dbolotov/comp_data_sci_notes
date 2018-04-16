@@ -1848,13 +1848,76 @@ traintest.T.drop_duplicates()</code></pre></li>
 <ul>
 <li>Pairwise loss takes predictions and labels for a pair of objects and computes their loss. Ideally, the loss is 0 when ordering is correct, and greater than 0 when the ordering is incorrect. In practice, different loss functions can be used. <span class="math display">\[min\sum_i^N\sum_i^Nl_{pair}(\hat{y}_i,\hat{y}_j;y_i,y_j)\]</span></li>
 </ul></li>
-<li>For example, we can use log loss: <span class="math display">\[Loss = \frac{1}{N_0N_2}\sum_{j:y_j=1}^{N_1}\sum_{i:y_i=0}^{N_0}{log(prob(\hat{y}_j-\hat{y}_i))}\]</span></li>
+<li>For example, we can use log loss: <span class="math display">\[Loss = \frac{1}{N_0N_2}\sum_{j:y_j=1}^{N_1}\sum_{i:y_i=0}^{N_0}{log(prob(\hat{y}_j-\hat{y}_i))}\]</span>
+<ul>
+<li>The target for this pairwise loss is 1. So there is one term in the logloss objective instead of two.</li>
+<li>The <span class="math inline">\(prob\)</span> function is used to keep the difference between predictions for 0 to 1 range.</li>
+</ul></li>
+<li>Availability in packages
+<ul>
+<li>Tree-based: XGBoost, LightGBM</li>
+<li>Linear models: ??</li>
+<li>Neural nets: not out of the box, but is straightforward to implement.</li>
+</ul></li>
+<li>Most people still use logloss as an optimization loss without any more postprocessing. For example, an XGBoost model trained with logloss can give an AUC score comparable to model trained with pairwise loss.</li>
+</ul>
+</div>
+</div>
+<div id="quadratic-weighted-kappa" class="section level4">
+<h4>Quadratic weighted Kappa</h4>
+<ul>
+<li>There are two methods to optimize quadratic weighted kappa. One is very common and easy. The second is not that common, and requires implementing a custom loss function for XGBoost or neural nets.</li>
+</ul>
+<div id="method-1" class="section level5">
+<h5>Method 1</h5>
+<ul>
+<li>Recall that we are solving an ordered classification problem, and our labels can be thought of as integer ratings, say from 1 to 5.</li>
+<li>The task is classification, as we cannot output, e.g., 4.5 as an answer.</li>
+<li>We can treat this task as a regression and then convert the predictions into integer ratings in post-processing.</li>
+<li>Quadratic weights make Kappa similar to regression with MSE loss if we allow our predictions to take values between the labels (i.e., relax the predictions). But in fact, it is different to MSE.</li>
+<li>If relaxed, Kappa would be the following: <span class="math display">\[Kappa(y,\hat{y}) \approx 1 - \frac{MSE}{hard to deal with part}\]</span></li>
+<li>The hard-to-deal-with part is dependent on the predictions. Some users have the logic of since there’s MSE in the nominator, we can optimize that and not care about the denominator. This is not the correct way to do it, but turns out to be useful in practice.</li>
+<li>MSE gives float values, which must be converted to integers. The straightforward way is to round the predictions. But we can think of rounding as applying thresholds: e.g. if the value is greater than 3.5 and less than 4.5 then output 3. The thresholds can be tuned with grid search.</li>
+<li>To summarize:
+<ul>
+<li>Fit MSE loss.</li>
+<li>Find proper thresholds.</li>
+</ul></li>
+</ul>
+</div>
+<div id="method-2" class="section level5">
+<h5>Method 2</h5>
+<ul>
+<li><strong>On the Direct Maximization of Quadratic Weighted Kappa</strong> describes a way to relax classification problems to regression but also deal with the denominator.</li>
 </ul>
 </div>
 </div>
 </div>
 <div id="additional-material-and-links-6" class="section level3">
 <h3>Additional material and links</h3>
+<div id="classification" class="section level4">
+<h4>Classification</h4>
+<ul>
+<li><a href="http://queirozf.com/entries/evaluation-metrics-for-classification-quick-examples-references">Evaluation Metrics for Classification Problems: Quick Examples + References</a></li>
+<li><a href="https://www.garysieling.com/blog/sklearn-gini-vs-entropy-criteria">Decision Trees: “Gini” vs. “Entropy” criteria</a></li>
+<li><a href="http://www.navan.name/roc/">Understanding ROC curves</a></li>
+</ul>
+</div>
+<div id="ranking" class="section level4">
+<h4>Ranking</h4>
+<ul>
+<li><a href="http://icml.cc/2015/wp-content/uploads/2015/06/icml_ranking.pdf">Learning to Rank using Gradient Descent</a> - original paper about pairwise method for AUC optimization</li>
+<li><a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/MSR-TR-2010-82.pdf">Overview of further developments of RankNet</a></li>
+<li><a href="https://sourceforge.net/p/lemur/wiki/RankLib/">RankLib</a> (implemtations for the 2 papers from above)</li>
+<li><a href="https://wellecks.wordpress.com/2015/01/15/learning-to-rank-overview">Learning to Rank Overview</a></li>
+</ul>
+</div>
+<div id="clustering" class="section level4">
+<h4>Clustering</h4>
+<ul>
+<li><a href="http://nlp.uned.es/docs/amigo2007a.pdf">Evaluation metrics for clustering</a></li>
+</ul>
+</div>
 </div>
 </div>
 <div id="mean-encodings" class="section level2">
@@ -1875,6 +1938,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <h1>Course summary - most important points</h1>
 <ul>
 <li>Set up the train/validation data split to mimic the train/test split of the competition.</li>
+<li>Metrics optimization: the target metric is how submissions are scored. Optimization loss is what the model optimizes, and it is not always the same as the target metric that we want to optimize. Predictions can be post-processed to make them better fit the target metric.</li>
 </ul>
 </div>
 
