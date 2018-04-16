@@ -1330,22 +1330,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 </ul>
 <div id="mse-mean-square-error" class="section level4">
 <h4>MSE: Mean Square Error</h4>
-<ul>
-<li><span class="math inline">\(MSE = \frac{1}{N}\Sigma_{i=1}^N(y_i-\hat{y_i})^2\)</span></li>
-<li>This is the most common metric for regression problems. Used when there is no specific preference to the problem solution, or no other metric is known.</li>
-<li>MSE measures the average squared error of the predictions.</li>
-<li>Visualization: for a dataset (of 5 points), how will the error change if we fix all predictions but one to be perfect, and vary the value of one prediction?
-<ul>
-<li>The MSE plot will look like a parabola, with the lowest value being when the prediction equals the target.</li>
-</ul></li>
-<li>Baseline model
-<ul>
-<li>The simplest baseline model does not use any features, and just predicts a constant value <span class="math inline">\(\alpha\)</span> that minimizes the MSE of the dataset.</li>
-<li>The value <span class="math inline">\(\alpha\)</span> can be found by setting the derivative of MSE w.r.t. <span class="math inline">\(\alpha\)</span> to 0, and solve for <span class="math inline">\(\alpha\)</span>.</li>
-<li>The best <span class="math inline">\(\alpha\)</span> is the mean value of the target column.</li>
-</ul></li>
-<li>There are two other metrics related to MSE, discussed below.</li>
-</ul>
+<p><span class="math display">\[MSE = \frac{1}{N}\sum_{i=1}^N(y_i-\hat{y_i})^2\]</span> - This is the most common metric for regression problems. Used when there is no specific preference to the problem solution, or no other metric is known. - MSE measures the average squared error of the predictions. - Visualization: for a dataset (of 5 points), how will the error change if we fix all predictions but one to be perfect, and vary the value of one prediction? - The MSE plot will look like a parabola, with the lowest value being when the prediction equals the target. - Baseline model - The simplest baseline model does not use any features, and just predicts a constant value <span class="math inline">\(\alpha\)</span> that minimizes the MSE of the dataset. - The value <span class="math inline">\(\alpha\)</span> can be found by setting the derivative of MSE w.r.t. <span class="math inline">\(\alpha\)</span> to 0, and solve for <span class="math inline">\(\alpha\)</span>. - The best <span class="math inline">\(\alpha\)</span> is the mean value of the target column. - There are two other metrics related to MSE, discussed below.</p>
 <div id="rmse-root-mean-square-error" class="section level5">
 <h5>RMSE: Root mean square error</h5>
 <ul>
@@ -1367,7 +1352,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 </div>
 <div id="r-squared-metric" class="section level5">
 <h5>R-squared metric</h5>
-<p><span class="math display">\[R^2 = 1 - \frac{\frac{1}{N}\Sigma_{i=1}^N(y_i-\hat{y_i})^2}{\frac{1}{N}\Sigma_{i=1}^N(y_i-\bar{y_i})^2}= 1 - \frac{MSE}{\frac{1}{N}\Sigma_{i=1}^N(y_i-\bar{y_i})^2},\]</span> <span class="math display">\[\bar{y} = \frac{1}{N}\Sigma_{i=1}^Ny_i\]</span></p>
+<p><span class="math display">\[R^2 = 1 - \frac{\frac{1}{N}\sum_{i=1}^N(y_i-\hat{y_i})^2}{\frac{1}{N}\sum_{i=1}^N(y_i-\bar{y_i})^2}= 1 - \frac{MSE}{\frac{1}{N}\sum_{i=1}^N(y_i-\bar{y_i})^2},\]</span> <span class="math display">\[\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i\]</span></p>
 <ul>
 <li>To judge model quality by MSE and RMSE, take into account the properties of the dataset and the target.</li>
 <li>When MSE of predictions is 0, <span class="math inline">\(R^2\)</span> is 1. When the model MSE equals to MSE of the constant model, <span class="math inline">\(R^2\)</span> is zero.</li>
@@ -1378,7 +1363,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <div id="mae-mean-absolute-error" class="section level4">
 <h4>MAE: Mean Absolute Error</h4>
 <ul>
-<li><span class="math inline">\(MAE = \frac{1}{N}\Sigma_{i=1}^N|y_i-\hat{y_i}|\)</span></li>
+<li><span class="math inline">\(MAE = \frac{1}{N}\sum_{i=1}^N|y_i-\hat{y_i}|\)</span></li>
 <li>The error is an average of the absolute difference between the target and the predictions.</li>
 <li>This metric penalizes large errors <em>less</em> than MSE does, and so is not as sensitive to outliers as MSE.</li>
 <li>MAE is widely used in finance, where a $10 error is usually exactly 2 times worse than a $5 error. On the other hand, MSE thinks that a $10 error is 4 times worse than a $5 error. MSE is easier to justify and explain.</li>
@@ -1424,8 +1409,8 @@ traintest.T.drop_duplicates()</code></pre></li>
 <ul>
 <li>Relative error preference can be expressed with MSPE (mean square percentage error) and MAPE (mean absolute percentage error):
 <ul>
-<li><span class="math inline">\(MSPE = \frac{100\%}{N}\Sigma_{i=1}^N(\frac{y_i-\hat{y_i}}{y_i})^2\)</span></li>
-<li><span class="math inline">\(MAPE = \frac{100\%}{N}\Sigma_{i=1}^N|\frac{y_i-\hat{y_i}}{y_i}|\)</span></li>
+<li><span class="math inline">\(MSPE = \frac{100\%}{N}\sum_{i=1}^N(\frac{y_i-\hat{y_i}}{y_i})^2\)</span></li>
+<li><span class="math inline">\(MAPE = \frac{100\%}{N}\sum_{i=1}^N|\frac{y_i-\hat{y_i}}{y_i}|\)</span></li>
 </ul></li>
 <li>For each observation, the absolute error is devided by the target value, giving relative error.</li>
 <li>MSPE and MAPE can be thought of as weighted versions of MSE and MAE:
@@ -1442,7 +1427,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <li>For MSE, the optimal <span class="math inline">\(\alpha\)</span> is the target mean.</li>
 <li>For MSPE, the optimal <span class="math inline">\(\alpha\)</span> is the weighted target mean.
 <ul>
-<li><span class="math inline">\(MSPE = \frac{100\%}{N}\Sigma_{i=1}^N(\frac{y_i-\alpha}{y_i})^2\)</span></li>
+<li><span class="math inline">\(MSPE = \frac{100\%}{N}\sum_{i=1}^N(\frac{y_i-\alpha}{y_i})^2\)</span></li>
 </ul></li>
 </ul>
 </div>
@@ -1452,7 +1437,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <li>For MAE, the optimal <span class="math inline">\(\alpha\)</span> is the target median.</li>
 <li>For MAPE, the optimal <span class="math inline">\(\alpha\)</span> is the weighted target median.
 <ul>
-<li><span class="math inline">\(MAPE = \frac{100\%}{N}\Sigma_{i=1}^N|\frac{y_i-\alpha}{y_i}|\)</span></li>
+<li><span class="math inline">\(MAPE = \frac{100\%}{N}\sum_{i=1}^N|\frac{y_i-\alpha}{y_i}|\)</span></li>
 </ul></li>
 </ul>
 </div>
@@ -1463,7 +1448,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <ul>
 <li>A constant is added because log(0) is undefined. The constant can be 1 or something else.</li>
 </ul></li>
-<li><span class="math inline">\(RMSLE = \sqrt{\frac{1}{N}\Sigma_{i=1}^N(log(y_i+1)-log(\hat{y_i}+1))^2} = RMSE(log(y_i+1),log(\hat{y_i}+1)) = \sqrt{MSE(log(y_i+1),log(\hat{y_i}+1))}\)</span></li>
+<li><span class="math inline">\(RMSLE = \sqrt{\frac{1}{N}\sum_{i=1}^N(log(y_i+1)-log(\hat{y_i}+1))^2} = RMSE(log(y_i+1),log(\hat{y_i}+1)) = \sqrt{MSE(log(y_i+1),log(\hat{y_i}+1))}\)</span></li>
 <li>Just like MAPE and MSPE, this metric cares more about relative errors than absolute ones.</li>
 <li>However, the error curves for RMSLE are asymmetric. For this metric, it is always better to predict more than the same amount less than target.</li>
 <li>The version of this metric without square root can also be used, but the rooted version is more common.</li>
@@ -1472,7 +1457,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <div id="rmsle-baseline" class="section level4">
 <h4>RMSLE baseline</h4>
 <ul>
-<li><span class="math inline">\(RMSLE = \sqrt{\frac{1}{N}\Sigma_{i=1}^N(log(y_i+1)-log(\alpha+1))^2} = RMSE(log(y_i+1),log(\alpha+1)) = \sqrt{MSE(log(y_i+1),log(\alpha+1))}\)</span></li>
+<li><span class="math inline">\(RMSLE = \sqrt{\frac{1}{N}\sum_{i=1}^N(log(y_i+1)-log(\alpha+1))^2} = RMSE(log(y_i+1),log(\alpha+1)) = \sqrt{MSE(log(y_i+1),log(\alpha+1))}\)</span></li>
 <li>The best constant in log space is a mean target value. We need to exponentiate it to get the answer.</li>
 </ul>
 </div>
@@ -1506,7 +1491,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <div id="accuracy-score" class="section level4">
 <h4>Accuracy score</h4>
 <ul>
-<li>Accuracy = <span class="math inline">\(\frac{1}{N}\Sigma_{i=1}^N[\hat{y}=y_i]\)</span></li>
+<li>Accuracy = <span class="math inline">\(\frac{1}{N}\sum_{i=1}^N[\hat{y}=y_i]\)</span></li>
 <li>Accuracy is the fraction of correctly classified objects, ranging from 0 to 1.</li>
 <li>Need hard labels to calculate accuracy.</li>
 <li>Baseline (best constant to predict):
@@ -1524,22 +1509,22 @@ traintest.T.drop_duplicates()</code></pre></li>
 <ul>
 <li>Logloss tries to make the classifier output true posterior probabilities for the observation to be of a certain class.</li>
 <li>Logloss is written in different forms for binary and multiclass tasks.</li>
-<li><em>Binary</em>: LogLoss = <span class="math inline">\(-\frac{1}{N}\Sigma_{i=1}^Ny_ilog(\hat{y_i}) + (1-y_i)log(1-\hat{y_i}), y_i \in R, \hat{y_i} \in R\)</span>
+<li><em>Binary</em>: LogLoss = <span class="math inline">\(-\frac{1}{N}\sum_{i=1}^Ny_ilog(\hat{y_i}) + (1-y_i)log(1-\hat{y_i}), y_i \in R, \hat{y_i} \in R\)</span>
 <ul>
 <li><span class="math inline">\(\hat{y_i}\)</span> is assumed to be a number in the range [0,1], and is the probability of an object to belong to class 1. So, <span class="math inline">\((1-\hat{y_i})\)</span> is the probability of the object to belong to class 0.</li>
 </ul></li>
-<li><em>Multiclass</em>: LogLoss = <span class="math inline">\(-\frac{1}{N}\Sigma_{i=1}^N\Sigma_{i=1}^Ly_{il}log(\hat{y_{il}}), y_i \in R^L, \hat{y_i} \in R^L\)</span>
+<li><em>Multiclass</em>: LogLoss = <span class="math inline">\(-\frac{1}{N}\sum_{i=1}^N\sum_{i=1}^Ly_{il}log(\hat{y_{il}}), y_i \in R^L, \hat{y_i} \in R^L\)</span>
 <ul>
 <li><span class="math inline">\(\hat{y_i}\)</span> is a vector of size <span class="math inline">\(L\)</span>, and its sum is exactly 1. The elements are the probabilities to belong to each of the classes.</li>
 </ul></li>
-<li><em>In practice</em>: LogLoss = <span class="math inline">\(-\frac{1}{N}\Sigma_{i=1}^N\Sigma_{i=1}^Ly_{il}log(min(max(\hat{y_{il}},10^{-15}),1-10^{-15}))\)</span>
+<li><em>In practice</em>: LogLoss = <span class="math inline">\(-\frac{1}{N}\sum_{i=1}^N\sum_{i=1}^Ly_{il}log(min(max(\hat{y_{il}},10^{-15}),1-10^{-15}))\)</span>
 <ul>
 <li>To avoid NaNs in practice, predictions are first clipped to be not from 0 to 1, but from some small positive number to 1 minus some small positive number.</li>
 </ul></li>
 <li>Compared with absolute error, logloss strongly penalizes completely wrong answers, and prefers to make a lot of small mistakes rather than make few severe mistakes.</li>
 <li>Baseline:
 <ul>
-<li>LogLoss = <span class="math inline">\(-\frac{1}{N}\Sigma_{i=1}^Ny_ilog(\alpha) + (1-y_i)log(1-\alpha)\)</span></li>
+<li>LogLoss = <span class="math inline">\(-\frac{1}{N}\sum_{i=1}^Ny_ilog(\alpha) + (1-y_i)log(1-\alpha)\)</span></li>
 <li>Set <span class="math inline">\(\alpha_i\)</span> to the frequency of i-th class.</li>
 <li>For a dataset of 10 cats and 90 dogs, <span class="math inline">\(\alpha\)</span> = [0.1, 0.9].</li>
 </ul></li>
@@ -1596,7 +1581,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <li>Ex: for a dataset of 10 cats and 90 dogs, predict 20 cats and 80 dogs at random: accuracy = <span class="math inline">\(0.2*0.1 + 0.8*0.9 = 0.74\)</span>.</li>
 </ul></li>
 <li>Cohen’s Kappa = 1 - (1 - accuracy)/(1 - <span class="math inline">\(p_e\)</span>), where <span class="math inline">\(p_e\)</span> is the average accuracy for permuted predictions.</li>
-<li><span class="math inline">\(p_e\)</span> can be computed analytically: <span class="math inline">\(p_e = \frac{1}{N^2}\Sigma_kn_{k1}n_{k2}\)</span>.
+<li><span class="math inline">\(p_e\)</span> can be computed analytically: <span class="math inline">\(p_e = \frac{1}{N^2}\sum_kn_{k1}n_{k2}\)</span>.
 <ul>
 <li>Multiply the empirical frequencies of predictions and ground truth labels for each class, and then sum them up.</li>
 </ul></li>
@@ -1611,7 +1596,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <li>Ex: for a dataset of 10 cats, 90 dogs, and 20 tigers, form a 3x3 matrix, and set the weight to be 10 for when predict “cat” or “dog”, but ground truth is “tiger”.</li>
 </ul></li>
 <li>A confusion matrix shows how our classifier distributes predictions over the objects.</li>
-<li>Weighted error = <span class="math inline">\(\frac{1}{const}\Sigma_{i,j}C_{i,j}W_{i,j}\)</span>
+<li>Weighted error = <span class="math inline">\(\frac{1}{const}\sum_{i,j}C_{i,j}W_{i,j}\)</span>
 <ul>
 <li>This is a sum of the element-wise matrix multiplication.</li>
 <li>A constant is used to normalize the result between 0 and 1, but it will cancel out later.</li>
@@ -1738,8 +1723,8 @@ traintest.T.drop_duplicates()</code></pre></li>
 <li>Many libraries accept sample weights.</li>
 <li>Sample weights:
 <ul>
-<li>MSPE: <span class="math inline">\(w_i = \frac{1/y_i^2}{\Sigma_{i=1}^N1/y_i^2}\)</span></li>
-<li>MAPE: <span class="math inline">\(w_i = \frac{1/y_i}{\Sigma_{i=1}^N1/y}\)</span></li>
+<li>MSPE: <span class="math inline">\(w_i = \frac{1/y_i^2}{\sum_{i=1}^N1/y_i^2}\)</span></li>
+<li>MAPE: <span class="math inline">\(w_i = \frac{1/y_i}{\sum_{i=1}^N1/y}\)</span></li>
 </ul></li>
 <li>To optimize MSPE, set the loss in the library to MSE, and use MSPE sample weights. Similarly for MAPE.</li>
 <li>Not every library supports sample weights.</li>
@@ -1781,7 +1766,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <h4>Log loss</h4>
 <ul>
 <li>Log loss for classification is like MSE for regression: it is implemented everywhere.</li>
-<li><span class="math inline">\(LogLoss = -\frac{1}{N}\Sigma_{i=1}^Ny_ilog(\hat{y}_i) + (1-y_i)log(1-\hat{y}_i)\)</span></li>
+<li><span class="math inline">\(LogLoss = -\frac{1}{N}\sum_{i=1}^Ny_ilog(\hat{y}_i) + (1-y_i)log(1-\hat{y}_i)\)</span></li>
 <li>Implemented in the following libraries:
 <ul>
 <li>Tree-based: XGboost, LightGBM</li>
@@ -1816,7 +1801,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <div id="accuracy" class="section level4">
 <h4>Accuracy</h4>
 <ul>
-<li>Accuracy = <span class="math inline">\(\frac{1}{N}\Sigma_{i=1}^N[\hat{y}_i = y_i]\)</span></li>
+<li>Accuracy = <span class="math inline">\(\frac{1}{N}\sum_{i=1}^N[\hat{y}_i = y_i]\)</span></li>
 <li>There is no easy recipe for direct optimization of accuracy.</li>
 <li>In general, the recipe is the following:
 <ul>
@@ -1841,6 +1826,32 @@ traintest.T.drop_duplicates()</code></pre></li>
 </div>
 <div id="classification-metrics-optimization-ii" class="section level3">
 <h3>Classification metrics optimization II</h3>
+<div id="auc" class="section level4">
+<h4>AUC</h4>
+<ul>
+<li>Although the loss function of AUC has zero gradients almost everywhere (exactly as accuracy loss), there exists an algorithm to optimize AUC with gradient-based methods. Some models implement this algorithm, so we can use the algorithm by setting the right parameters.</li>
+<li>There is more than one way to implement the algorithm; one way is discussed here.</li>
+</ul>
+<div id="pointwise-loss" class="section level5">
+<h5>Pointwise loss</h5>
+<ul>
+<li>Recall that originally, a classification task is usually solved at the object level. We want to assign 0 to red objects (true class 0), and 1 to green objects (true class 1). We do this independently for each object, and so our loss is pointwise. We compute it for each object individually, and sum or average the losses to get a total loss.
+<ul>
+<li><span class="math inline">\(min\sum_i^Nl_{point}(\hat{y}_i;y_i)\)</span></li>
+</ul></li>
+</ul>
+</div>
+<div id="pairwise-loss" class="section level5">
+<h5>Pairwise loss</h5>
+<ul>
+<li>Recall that AUC is the probability of the pair of objects to be ordered in the right way. So ideally, we want predictions for the green objects to be greater than predictions for the red ones. So instead of using single objects, we are working with pairs of objects, and instead of pointwise loss, we are using pairwise loss.
+<ul>
+<li>Pairwise loss takes predictions and labels for a pair of objects and computes their loss. Ideally, the loss is 0 when ordering is correct, and greater than 0 when the ordering is incorrect. In practice, different loss functions can be used. <span class="math display">\[min\sum_i^N\sum_i^Nl_{pair}(\hat{y}_i,\hat{y}_j;y_i,y_j)\]</span></li>
+</ul></li>
+<li>For example, we can use log loss: <span class="math display">\[Loss = \frac{1}{N_0N_2}\sum_{j:y_j=1}^{N_1}\sum_{i:y_i=0}^{N_0}{log(prob(\hat{y}_j-\hat{y}_i))}\]</span></li>
+</ul>
+</div>
+</div>
 </div>
 <div id="additional-material-and-links-6" class="section level3">
 <h3>Additional material and links</h3>

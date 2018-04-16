@@ -784,7 +784,7 @@ $Loss(\hat{y_i};y_i) = |y_i - \hat{y_i}|$ if trend predicted correctly, $(y_i-\h
     - $y_i \in R$ - target for i-th object
 
 #### MSE: Mean Square Error
-- $MSE = \frac{1}{N}\Sigma_{i=1}^N(y_i-\hat{y_i})^2$
+$$MSE = \frac{1}{N}\sum_{i=1}^N(y_i-\hat{y_i})^2$$
 - This is the most common metric for regression problems. Used when there is no specific preference to the problem solution, or no other metric is known.
 - MSE measures the average squared error of the predictions.
 - Visualization: for a dataset (of 5 points), how will the error change if we fix all predictions but one to be perfect, and vary the value of one prediction?
@@ -808,15 +808,15 @@ $Loss(\hat{y_i};y_i) = |y_i - \hat{y_i}|$ if trend predicted correctly, $(y_i-\h
     - So MSE and RMSE are not immediately interchangeable for gradient-based methods. You will probably need to adjust some parameters, like the learning rate.
 
 ##### R-squared metric
-$$R^2 = 1 - \frac{\frac{1}{N}\Sigma_{i=1}^N(y_i-\hat{y_i})^2}{\frac{1}{N}\Sigma_{i=1}^N(y_i-\bar{y_i})^2}= 1 - \frac{MSE}{\frac{1}{N}\Sigma_{i=1}^N(y_i-\bar{y_i})^2},$$
-$$\bar{y} = \frac{1}{N}\Sigma_{i=1}^Ny_i$$
+$$R^2 = 1 - \frac{\frac{1}{N}\sum_{i=1}^N(y_i-\hat{y_i})^2}{\frac{1}{N}\sum_{i=1}^N(y_i-\bar{y_i})^2}= 1 - \frac{MSE}{\frac{1}{N}\sum_{i=1}^N(y_i-\bar{y_i})^2},$$
+$$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
 
 - To judge model quality by MSE and RMSE, take into account the properties of the dataset and the target.
 - When MSE of predictions is 0, $R^2$ is 1. When the model MSE equals to MSE of the constant model, $R^2$ is zero.
 - To optimize $R^2$, we can optimize MSE, since the constants in the $R^2$ equation do not matter for optimization.
 
 #### MAE: Mean Absolute Error
-- $MAE = \frac{1}{N}\Sigma_{i=1}^N|y_i-\hat{y_i}|$
+- $MAE = \frac{1}{N}\sum_{i=1}^N|y_i-\hat{y_i}|$
 - The error is an average of the absolute difference between the target and the predictions.
 - This metric penalizes large errors *less* than MSE does, and so is not as sensitive to outliers as MSE.
 - MAE is widely used in finance, where a \$10 error is usually exactly 2 times worse than a \$5 error. On the other hand, MSE thinks that a \$10 error  is 4 times worse than a \$5 error. MSE is easier to justify and explain.
@@ -846,8 +846,8 @@ $$\bar{y} = \frac{1}{N}\Sigma_{i=1}^Ny_i$$
 
 #### From MSE and MAE to MSPE and MAPE
 - Relative error preference can be expressed with MSPE (mean square percentage error) and MAPE (mean absolute percentage error):
-    - $MSPE = \frac{100\%}{N}\Sigma_{i=1}^N(\frac{y_i-\hat{y_i}}{y_i})^2$
-    - $MAPE = \frac{100\%}{N}\Sigma_{i=1}^N|\frac{y_i-\hat{y_i}}{y_i}|$
+    - $MSPE = \frac{100\%}{N}\sum_{i=1}^N(\frac{y_i-\hat{y_i}}{y_i})^2$
+    - $MAPE = \frac{100\%}{N}\sum_{i=1}^N|\frac{y_i-\hat{y_i}}{y_i}|$
 - For each observation, the absolute error is devided by the target value, giving relative error.
 - MSPE and MAPE can be thought of as weighted versions of MSE and MAE:
     - For MAPE, the weight of each sample is inversely proportional to its target.
@@ -857,23 +857,23 @@ $$\bar{y} = \frac{1}{N}\Sigma_{i=1}^Ny_i$$
 #### MSPE baseline
 - For MSE, the optimal $\alpha$ is the target mean.
 - For MSPE, the optimal $\alpha$ is the weighted target mean.
-    - $MSPE = \frac{100\%}{N}\Sigma_{i=1}^N(\frac{y_i-\alpha}{y_i})^2$
+    - $MSPE = \frac{100\%}{N}\sum_{i=1}^N(\frac{y_i-\alpha}{y_i})^2$
 
 #### MAPE baseline
 - For MAE, the optimal $\alpha$ is the target median.
 - For MAPE, the optimal $\alpha$ is the weighted target median.
-    - $MAPE = \frac{100\%}{N}\Sigma_{i=1}^N|\frac{y_i-\alpha}{y_i}|$
+    - $MAPE = \frac{100\%}{N}\sum_{i=1}^N|\frac{y_i-\alpha}{y_i}|$
 
 #### RMSLE: Root Mean Squared Logarithmic Error
 - RMSLE is RMSE calculated in log space.
     - A constant is added because log(0) is undefined. The constant can be 1 or something else.
-- $RMSLE = \sqrt{\frac{1}{N}\Sigma_{i=1}^N(log(y_i+1)-log(\hat{y_i}+1))^2} = RMSE(log(y_i+1),log(\hat{y_i}+1)) = \sqrt{MSE(log(y_i+1),log(\hat{y_i}+1))}$
+- $RMSLE = \sqrt{\frac{1}{N}\sum_{i=1}^N(log(y_i+1)-log(\hat{y_i}+1))^2} = RMSE(log(y_i+1),log(\hat{y_i}+1)) = \sqrt{MSE(log(y_i+1),log(\hat{y_i}+1))}$
 - Just like MAPE and MSPE, this metric cares more about relative errors than absolute ones.
 - However, the error curves for RMSLE are asymmetric. For this metric, it is always better to predict more than the same amount less than target.
 - The version of this metric without square root can also be used, but the rooted version is more common.
 
 #### RMSLE baseline
-- $RMSLE = \sqrt{\frac{1}{N}\Sigma_{i=1}^N(log(y_i+1)-log(\alpha+1))^2} = RMSE(log(y_i+1),log(\alpha+1)) = \sqrt{MSE(log(y_i+1),log(\alpha+1))}$
+- $RMSLE = \sqrt{\frac{1}{N}\sum_{i=1}^N(log(y_i+1)-log(\alpha+1))^2} = RMSE(log(y_i+1),log(\alpha+1)) = \sqrt{MSE(log(y_i+1),log(\alpha+1))}$
 - The best constant in log space is a mean target value. We need to exponentiate it to get the answer.
 
 #### Summary
@@ -894,7 +894,7 @@ $$\bar{y} = \frac{1}{N}\Sigma_{i=1}^Ny_i$$
         - $[f(x) > b]$, b - threshold (for binary classification)
 
 #### Accuracy score
-- Accuracy = $\frac{1}{N}\Sigma_{i=1}^N[\hat{y}=y_i]$
+- Accuracy = $\frac{1}{N}\sum_{i=1}^N[\hat{y}=y_i]$
 - Accuracy is the fraction of correctly classified objects, ranging from 0 to 1.
 - Need hard labels to calculate accuracy.
 - Baseline (best constant to predict):
@@ -907,15 +907,15 @@ $$\bar{y} = \frac{1}{N}\Sigma_{i=1}^Ny_i$$
 #### Logarithmic loss (logloss)
 - Logloss tries to make the classifier output true posterior probabilities for the observation to be of a certain class.
 - Logloss is written in different forms for binary and multiclass tasks.
-- *Binary*: LogLoss = $-\frac{1}{N}\Sigma_{i=1}^Ny_ilog(\hat{y_i}) + (1-y_i)log(1-\hat{y_i}), y_i \in R, \hat{y_i} \in R$
+- *Binary*: LogLoss = $-\frac{1}{N}\sum_{i=1}^Ny_ilog(\hat{y_i}) + (1-y_i)log(1-\hat{y_i}), y_i \in R, \hat{y_i} \in R$
     - $\hat{y_i}$ is assumed to be a number in the range [0,1], and is the probability of an object to belong to class 1. So, $(1-\hat{y_i})$ is the probability of the object to belong to class 0.
-- *Multiclass*: LogLoss = $-\frac{1}{N}\Sigma_{i=1}^N\Sigma_{i=1}^Ly_{il}log(\hat{y_{il}}), y_i \in R^L, \hat{y_i} \in R^L$
+- *Multiclass*: LogLoss = $-\frac{1}{N}\sum_{i=1}^N\sum_{i=1}^Ly_{il}log(\hat{y_{il}}), y_i \in R^L, \hat{y_i} \in R^L$
     - $\hat{y_i}$ is a vector of size $L$, and its sum is exactly 1. The elements are the probabilities to belong to each of the classes.
-- *In practice*: LogLoss = $-\frac{1}{N}\Sigma_{i=1}^N\Sigma_{i=1}^Ly_{il}log(min(max(\hat{y_{il}},10^{-15}),1-10^{-15}))$
+- *In practice*: LogLoss = $-\frac{1}{N}\sum_{i=1}^N\sum_{i=1}^Ly_{il}log(min(max(\hat{y_{il}},10^{-15}),1-10^{-15}))$
     - To avoid NaNs in practice, predictions are first clipped to be not from 0 to 1, but from some small positive number to 1 minus some small positive number.
 - Compared with absolute error, logloss strongly penalizes completely wrong answers, and prefers to make a lot of small mistakes rather than make few severe mistakes.
 - Baseline:
-    - LogLoss = $-\frac{1}{N}\Sigma_{i=1}^Ny_ilog(\alpha) + (1-y_i)log(1-\alpha)$
+    - LogLoss = $-\frac{1}{N}\sum_{i=1}^Ny_ilog(\alpha) + (1-y_i)log(1-\alpha)$
     - Set $\alpha_i$ to the frequency of i-th class.
     - For a dataset of 10 cats and 90 dogs, $\alpha$ = [0.1, 0.9].
 
@@ -953,7 +953,7 @@ $$\bar{y} = \frac{1}{N}\Sigma_{i=1}^Ny_i$$
 - For Cohen's Kappa, the baseline is calculated is the average of the accuracies for randomly shuffled hard predictions.
     - Ex: for a dataset of 10 cats and 90 dogs, predict 20 cats and 80 dogs at random: accuracy = $0.2*0.1 + 0.8*0.9 = 0.74$.
 - Cohen's Kappa = 1 - (1 - accuracy)/(1 - $p_e$), where $p_e$ is the average accuracy for permuted predictions.
-- $p_e$ can be computed analytically: $p_e = \frac{1}{N^2}\Sigma_kn_{k1}n_{k2}$.
+- $p_e$ can be computed analytically: $p_e = \frac{1}{N^2}\sum_kn_{k1}n_{k2}$.
     - Multiply the empirical frequencies of predictions and ground truth labels for each class, and then sum them up.
 - The score can also be rewritten in terms of errors: Cohen's Kappa = 1 - error / (baseline error)
 
@@ -962,7 +962,7 @@ $$\bar{y} = \frac{1}{N}\Sigma_{i=1}^Ny_i$$
 - An error weight matrix contains the weight for each mistake.
     - Ex: for a dataset of 10 cats, 90 dogs, and 20 tigers, form a 3x3 matrix, and set the weight to be 10 for when predict "cat" or "dog", but ground truth is "tiger".
 - A confusion matrix shows how our classifier distributes predictions over the objects.
-- Weighted error = $\frac{1}{const}\Sigma_{i,j}C_{i,j}W_{i,j}$
+- Weighted error = $\frac{1}{const}\sum_{i,j}C_{i,j}W_{i,j}$
     - This is a sum of the element-wise matrix multiplication.
     - A constant is used to normalize the result between 0 and 1, but it will cancel out later.
 - Then weighted kappa is calculated as: weighted kappa = 1 - (weighted error) / (weighted baseline error).
@@ -1033,8 +1033,8 @@ $$\bar{y} = \frac{1}{N}\Sigma_{i=1}^Ny_i$$
 ##### Using sample weights
 - Many libraries accept sample weights.
 - Sample weights:
-    - MSPE: $w_i = \frac{1/y_i^2}{\Sigma_{i=1}^N1/y_i^2}$
-    - MAPE: $w_i = \frac{1/y_i}{\Sigma_{i=1}^N1/y}$
+    - MSPE: $w_i = \frac{1/y_i^2}{\sum_{i=1}^N1/y_i^2}$
+    - MAPE: $w_i = \frac{1/y_i}{\sum_{i=1}^N1/y}$
 - To optimize MSPE, set the loss in the library to MSE, and use MSPE sample weights. Similarly for MAPE.
 - Not every library supports sample weights.
 
@@ -1059,7 +1059,7 @@ $$\bar{y} = \frac{1}{N}\Sigma_{i=1}^Ny_i$$
 
 #### Log loss
 - Log loss for classification is like MSE for regression: it is implemented everywhere.
-- $LogLoss = -\frac{1}{N}\Sigma_{i=1}^Ny_ilog(\hat{y}_i) + (1-y_i)log(1-\hat{y}_i)$
+- $LogLoss = -\frac{1}{N}\sum_{i=1}^Ny_ilog(\hat{y}_i) + (1-y_i)log(1-\hat{y}_i)$
 - Implemented in the following libraries:
     - Tree-based: XGboost, LightGBM
     - Linear models
@@ -1082,7 +1082,7 @@ $$\bar{y} = \frac{1}{N}\Sigma_{i=1}^Ny_i$$
 - The basic idea is this: We can fit any classifier - it does not need to optimize log loss, it just needs to be good in terms of, for example, AUC. Then, we can fit another model (model 2) on top that will take the first model's predictions and calibrate them properly. Model 2 uses log loss as its optimization loss.
 
 #### Accuracy
-- Accuracy = $\frac{1}{N}\Sigma_{i=1}^N[\hat{y}_i = y_i]$
+- Accuracy = $\frac{1}{N}\sum_{i=1}^N[\hat{y}_i = y_i]$
 - There is no easy recipe for direct optimization of accuracy.
 - In general, the recipe is the following:
     - For binary classification: fit any metric and tune binarization threshold.
@@ -1100,6 +1100,23 @@ $$\bar{y} = \frac{1}{N}\Sigma_{i=1}^Ny_i$$
 
 
 ### Classification metrics optimization II
+
+#### AUC
+- Although the loss function of AUC has zero gradients almost everywhere (exactly as accuracy loss), there exists an algorithm to optimize AUC with gradient-based methods. Some models implement this algorithm, so we can use the algorithm by setting the right parameters.
+- There is more than one way to implement the algorithm; one way is discussed here.
+
+##### Pointwise loss
+- Recall that originally, a classification task is usually solved at the object level. We want to assign 0 to red objects (true class 0), and 1 to green objects (true class 1). We do this independently for each object, and so our loss is pointwise. We compute it for each object individually, and sum or average the losses to get a total loss.
+    - $min\sum_i^Nl_{point}(\hat{y}_i;y_i)$
+
+##### Pairwise loss
+- Recall that AUC is the probability of the pair of objects to be ordered in the right way. So ideally, we want predictions for the green objects to be greater than predictions for the red ones. So instead of using single objects, we are working with pairs of objects, and instead of pointwise loss, we are using pairwise loss.
+    - Pairwise loss takes predictions and labels for a pair of objects and computes their loss. Ideally, the loss is 0 when ordering is correct, and greater than 0 when the ordering is incorrect. In practice, different loss functions can be used. $$min\sum_i^N\sum_i^Nl_{pair}(\hat{y}_i,\hat{y}_j;y_i,y_j)$$
+- For example, we can use log loss: $$Loss = \frac{1}{N_0N_2}\sum_{j:y_j=1}^{N_1}\sum_{i:y_i=0}^{N_0}{log(prob(\hat{y}_j-\hat{y}_i))}$$
+
+
+
+
 
 ### Additional material and links
 
