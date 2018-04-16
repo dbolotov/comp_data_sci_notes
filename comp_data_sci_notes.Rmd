@@ -1285,6 +1285,72 @@ $$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
 - CV loop or expanding mean are recommended for practical tasks, as they are the most robust and easy to tune.
 
 ### Extensions and generalizations
+#### Regression
+- Regression tasks are more flexible for feature encoding. 
+- Unlike binary classification, where mean is the only meaningful statistic we can extract from the target variable, regression allows for many different statistics: median, percentiles, standard deviation, etc.
+- We can even calculate distribution bins. For example, if target variable is distributed between 1 and 100, we can create 10 bin features. In feature 1, we count how many data points have target between 1 and 10, in feature 2 how many between 10 and 20, and so on.
+- All these features need to be regularized.
+
+#### Multiclass
+- For every feature we want to encode, we will have N different encodings, where N is the number of classes.
+- There is a non-obvious advantage. For example, tree models usually solve classification tasks in one-vs-all fashion, so every class has a different model. When we fit that model, it doesn't have information about structure of other classes, because they are merged into one entity. With mean encodings, we introduce additional information about the structure of other classes.
+
+#### Many-to-many relations
+- Domains with many-to-many relations are usually very complex, and require special approaches to create mean encodings. This section gives only a high level idea.
+- Example task: binary classification of users based on the apps installed on user smart phones.
+    - Each user may have multiple apps, and each app is used by multiple users.
+    - To encode apps, first take a cross product of users and app entities. This results in a long reprentation with one row for each user-app pair (each row of the data frame contains one user id, one app id, and the target).
+    - Using the long table, we can naturally calculate mean encodings for apps.
+    - Since each user might have multiple apps, the short representation will have a vector of means instead of a list of apps. Represent this vector by a statistic: min, max, mean, std, etc.
+
+#### Time series
+- With time series, we obviously can't use future information.
+- However, we can make some complicated features. 
+    - In data with independent rows, we are forced to use all rows to calculate the statistic. It makes no sense to use a subset of rows.
+    - This changes with time series. For a given category, we can calculate statistics from a previous day, previous week, etc.
+- Example: predict on which categories a user spends money.
+    - Good features would be: total amount of money spent in previous day by each user, average amount of money spent by all users in given category.
+
+#### Interactions and numerical features
+- In practice, it is beneficial to mean-encode numeric features and some combinations of features.
+- To encode a numeric feature, we only need to bin it, and then treat it as categorical.
+- There are two considerations: how to bin a numeric feature, and how to select useful combinations of features.
+- We can find this out from model structure by analyzing the trees. For example, first fit an XGBoost model on the raw features, without any encodings. If a numeric feature has a lot of split points, it means that there is some complicated dependency with target, and it's worth trying to mean-encode it. Furthermore, these exact split points may be used to bin the feature.
+
+- The process of extracting interactions is similar for 2-way, 3-way, etc. interactions.
+- Two features interact in a tree if they are in two neighboring nodes. We can iterate through all the trees in the model and calculate how many times each interaction appeared. The most frequent interactions are probably worth to mean-encode.
+    - For example, if interaction between feature1 and feature2 is found to be most frequent, we can concatenate those feature values in the data and mean-encode the resulting interaction.
+- Example: Amazon employee access challenge competition.
+    - The dataset contains only 9 categorical features.
+    - If we blindly fit a LightGBM model on raw features, then the score will be in 0.87 AUC range no matter how well the parameters are tuned (this is around position 700 on LB).
+    - Even if we mean-encode all the variables, we will not have any progress.
+    - Using CatBoost model, which internally encodes feature interactions, the score will immediately be in 0.91 range (20th position on LB).
+    - Note that CatBoost is not a silver bullet. We would still need to manually add more mean-encoded interactions.
+- In general, if the data has categorical variables, it is always worth to work with interactions and mean encodings.
+
+#### Correct validation reminder
+- During all local experiments, first split the data in X_tr and X_val parts.
+    - Estimate encodings on X_tr.
+    - Map them to X_tr and X_val.
+    - Regularize them on X_tr.
+    - Validate model on X_tr/X_val split.
+    - Don't even think about estimating encodings before splitting the data.
+- At submission stage:
+    - Estimate encodings on whole train data.
+    - Map them to train and test.
+    - Regularize on train.
+    - Fit on train.
+
+#### Summary
+- Main advantages:
+    - Compact transformation of categorical variables.
+    - Powerful basis for feature engineering.
+- Disadvantages:
+    - Need careful validation, there are many ways to overfit.
+    - Significant improvements only on specific datasets. Will not help in every competition.
+
+
+
 
 
 

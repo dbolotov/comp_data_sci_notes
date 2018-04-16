@@ -2069,7 +2069,109 @@ train_new[col+'_mean_target'] = cumsum/cumcnt</code></pre></li>
 </div>
 <div id="extensions-and-generalizations" class="section level3">
 <h3>Extensions and generalizations</h3>
+<div id="regression" class="section level4">
+<h4>Regression</h4>
+<ul>
+<li>Regression tasks are more flexible for feature encoding.</li>
+<li>Unlike binary classification, where mean is the only meaningful statistic we can extract from the target variable, regression allows for many different statistics: median, percentiles, standard deviation, etc.</li>
+<li>We can even calculate distribution bins. For example, if target variable is distributed between 1 and 100, we can create 10 bin features. In feature 1, we count how many data points have target between 1 and 10, in feature 2 how many between 10 and 20, and so on.</li>
+<li>All these features need to be regularized.</li>
+</ul>
+</div>
+<div id="multiclass" class="section level4">
+<h4>Multiclass</h4>
+<ul>
+<li>For every feature we want to encode, we will have N different encodings, where N is the number of classes.</li>
+<li>There is a non-obvious advantage. For example, tree models usually solve classification tasks in one-vs-all fashion, so every class has a different model. When we fit that model, it doesn’t have information about structure of other classes, because they are merged into one entity. With mean encodings, we introduce additional information about the structure of other classes.</li>
+</ul>
+</div>
+<div id="many-to-many-relations" class="section level4">
+<h4>Many-to-many relations</h4>
+<ul>
+<li>Domains with many-to-many relations are usually very complex, and require special approaches to create mean encodings. This section gives only a high level idea.</li>
+<li>Example task: binary classification of users based on the apps installed on user smart phones.
+<ul>
+<li>Each user may have multiple apps, and each app is used by multiple users.</li>
+<li>To encode apps, first take a cross product of users and app entities. This results in a long reprentation with one row for each user-app pair (each row of the data frame contains one user id, one app id, and the target).</li>
+<li>Using the long table, we can naturally calculate mean encodings for apps.</li>
+<li>Since each user might have multiple apps, the short representation will have a vector of means instead of a list of apps. Represent this vector by a statistic: min, max, mean, std, etc.</li>
+</ul></li>
+</ul>
+</div>
+<div id="time-series" class="section level4">
+<h4>Time series</h4>
+<ul>
+<li>With time series, we obviously can’t use future information.</li>
+<li>However, we can make some complicated features.
+<ul>
+<li>In data with independent rows, we are forced to use all rows to calculate the statistic. It makes no sense to use a subset of rows.</li>
+<li>This changes with time series. For a given category, we can calculate statistics from a previous day, previous week, etc.</li>
+</ul></li>
+<li>Example: predict on which categories a user spends money.
+<ul>
+<li>Good features would be: total amount of money spent in previous day by each user, average amount of money spent by all users in given category.</li>
+</ul></li>
+</ul>
+</div>
+<div id="interactions-and-numerical-features" class="section level4">
+<h4>Interactions and numerical features</h4>
+<ul>
+<li>In practice, it is beneficial to mean-encode numeric features and some combinations of features.</li>
+<li>To encode a numeric feature, we only need to bin it, and then treat it as categorical.</li>
+<li>There are two considerations: how to bin a numeric feature, and how to select useful combinations of features.</li>
+<li><p>We can find this out from model structure by analyzing the trees. For example, first fit an XGBoost model on the raw features, without any encodings. If a numeric feature has a lot of split points, it means that there is some complicated dependency with target, and it’s worth trying to mean-encode it. Furthermore, these exact split points may be used to bin the feature.</p></li>
+<li>The process of extracting interactions is similar for 2-way, 3-way, etc. interactions.</li>
+<li>Two features interact in a tree if they are in two neighboring nodes. We can iterate through all the trees in the model and calculate how many times each interaction appeared. The most frequent interactions are probably worth to mean-encode.
+<ul>
+<li>For example, if interaction between feature1 and feature2 is found to be most frequent, we can concatenate those feature values in the data and mean-encode the resulting interaction.</li>
+</ul></li>
+<li>Example: Amazon employee access challenge competition.
+<ul>
+<li>The dataset contains only 9 categorical features.</li>
+<li>If we blindly fit a LightGBM model on raw features, then the score will be in 0.87 AUC range no matter how well the parameters are tuned (this is around position 700 on LB).</li>
+<li>Even if we mean-encode all the variables, we will not have any progress.</li>
+<li>Using CatBoost model, which internally encodes feature interactions, the score will immediately be in 0.91 range (20th position on LB).</li>
+<li>Note that CatBoost is not a silver bullet. We would still need to manually add more mean-encoded interactions.</li>
+</ul></li>
+<li><p>In general, if the data has categorical variables, it is always worth to work with interactions and mean encodings.</p></li>
+</ul>
+</div>
+<div id="correct-validation-reminder" class="section level4">
+<h4>Correct validation reminder</h4>
+<ul>
+<li>During all local experiments, first split the data in X_tr and X_val parts.
+<ul>
+<li>Estimate encodings on X_tr.</li>
+<li>Map them to X_tr and X_val.</li>
+<li>Regularize them on X_tr.</li>
+<li>Validate model on X_tr/X_val split.</li>
+<li>Don’t even think about estimating encodings before splitting the data.</li>
+</ul></li>
+<li>At submission stage:
+<ul>
+<li>Estimate encodings on whole train data.</li>
+<li>Map them to train and test.</li>
+<li>Regularize on train.</li>
+<li>Fit on train.</li>
+</ul></li>
+</ul>
+</div>
+<div id="summary-2" class="section level4">
+<h4>Summary</h4>
+<ul>
+<li>Main advantages:
+<ul>
+<li>Compact transformation of categorical variables.</li>
+<li>Powerful basis for feature engineering.</li>
+</ul></li>
+<li>Disadvantages:
+<ul>
+<li>Need careful validation, there are many ways to overfit.</li>
+<li>Significant improvements only on specific datasets. Will not help in every competition.</li>
+</ul></li>
+</ul>
 <hr />
+</div>
 </div>
 </div>
 </div>
