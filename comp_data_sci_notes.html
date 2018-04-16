@@ -122,6 +122,9 @@ $(document).ready(function () {
 <li><a href="#metrics-optimization">Metrics optimization</a></li>
 <li><a href="#mean-encodings">Mean encodings</a></li>
 </ul></li>
+<li><a href="#week-4">Week 4</a><ul>
+<li><a href="#hyperparameter-tuning">Hyperparameter tuning</a></li>
+</ul></li>
 <li><a href="#course-summary---most-important-points">Course summary - most important points</a></li>
 </ul>
 </div>
@@ -2168,6 +2171,165 @@ train_new[col+'_mean_target'] = cumsum/cumcnt</code></pre></li>
 <ul>
 <li>Need careful validation, there are many ways to overfit.</li>
 <li>Significant improvements only on specific datasets. Will not help in every competition.</li>
+</ul></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div id="week-4" class="section level1">
+<h1>Week 4</h1>
+<div id="hyperparameter-tuning" class="section level2">
+<h2>Hyperparameter tuning</h2>
+<div id="hyperparameter-tuning-i" class="section level3">
+<h3>Hyperparameter tuning I</h3>
+<ul>
+<li><ol style="list-style-type: decimal">
+<li>Select the most influential parameters</li>
+</ol>
+<ul>
+<li>There are many parameters and we can’t tune all of them. Understand which params affect the model the most.</li>
+</ul></li>
+<li><ol start="2" style="list-style-type: decimal">
+<li>Understand how exactly they influence the training.</li>
+</ol></li>
+<li><ol start="3" style="list-style-type: decimal">
+<li>Tune them.</li>
+</ol>
+<ul>
+<li><ol style="list-style-type: lower-alpha">
+<li>Manually (change and examine)</li>
+</ol></li>
+<li><ol start="2" style="list-style-type: lower-alpha">
+<li>Automatically (hyperopt, etc.)</li>
+</ol></li>
+</ul></li>
+</ul>
+<div id="hyperparameter-optimization-software" class="section level4">
+<h4>Hyperparameter optimization software</h4>
+<ul>
+<li>The following is a list of software for automatic hyperparameter tuning.
+<ul>
+<li><em>Hyperopt</em></li>
+<li>Scikit-optimize</li>
+<li>Spearmint</li>
+<li>GPyOpt</li>
+<li>RoBO</li>
+<li>SMAC3</li>
+</ul></li>
+<li><p>Example usage:</p>
+<pre><code>def xgb_score(param):
+    # run XGBoost with parameters `param`
+
+def xgb_hyperopt():
+    space = {
+        'eta' : 0.01,
+        ...
+        ...
+        ...
+    }
+best = fmin(xgb_score, space, algo=tpe.suggest, max_evals=1000)</code></pre>
+<ul>
+<li>Define a function that will run our model with given set of params and return the validation score.</li>
+<li>Specify a search space.</li>
+</ul></li>
+<li>The best strategy is to run overnight.</li>
+<li><p>Try to pick parameter ranges that make sense.</p></li>
+</ul>
+</div>
+<div id="parameter-influence-on-model" class="section level4">
+<h4>Parameter influence on model</h4>
+<ul>
+<li>Different values of params result in three different fitting behaviors:
+<ul>
+<li>Underfitting: model is so constrained that it cannot even learn the train set.</li>
+<li>Good fit and generalization - this is the desired behavior.</li>
+<li>Overfitting: the model is so powerful that it overfits the train set and is not able to generalize at all.</li>
+</ul></li>
+<li>When tuning params, try to understand if the model is currently under or over fitting. Adjust params to get closer to desired behavior.</li>
+<li>Split all params to be tuned into two groups (color-coded):
+<ul>
+<li><ol style="list-style-type: decimal">
+<li><span style="color:green">Params that constrain the model</span>. If we increase these params, the model changes its behavior from overfitting to underfitting. Larger param values mean heavier constraint. Decrease these params to allow model to fit easier.</li>
+</ol></li>
+<li><ol start="2" style="list-style-type: decimal">
+<li><span style="color:red">Params that lead to overfit</span>. Increasing these params lead to a better fit (overfit) on train set. Increase these params if model is underfitting; decrease if overfitting.</li>
+</ol></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="hyperparameter-tuning-ii" class="section level3">
+<h3>Hyperparameter tuning II</h3>
+<div id="tree-based-models" class="section level4">
+<h4>Tree-based models</h4>
+<ul>
+<li>XGBoost and LightGBM are the gold standard. These are awesome implementations of a very versatile gradient-boosted decision tree model.</li>
+<li>CatBoost appeared at the time that this course was being recorded, but looks promising.</li>
+<li>List of models and software:
+<ul>
+<li>GBDT
+<ul>
+<li>XGBoost (dmlc/xgboost)</li>
+<li>LightGBM (Microsoft/LightGBM)</li>
+<li>CatBoost (catboost/catboost)</li>
+</ul></li>
+<li>RandomForest, ExtraTrees
+<ul>
+<li>scikit-learn</li>
+</ul></li>
+<li>Others
+<ul>
+<li>Regularized Greedy Forest (baidu/fast_rgf): implementation is very slow and hard to use.</li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+<div id="gbdt" class="section level4">
+<h4>GBDT</h4>
+<ul>
+<li>XGBoost and LightGBM both build decision trees one after another, gradually optimizing a given objective.</li>
+<li>There are several params that control the tree building process (listed in order of XGBoost, LightGBM).</li>
+<li><span style="color:green">max_depth | max_depth/num_leaves</span>
+<ul>
+<li>Maximum depth of a tree. Deeper trees fit a dataset better. Increasing this param leads to faster fitting to the train set.</li>
+<li>Depending on the task, the optimal depth can vary a lot. If increasing the depth reduces validation error but does not lead to overfitting, this may be a sign there are important interactions to extract from the data. In this case, it’s better to stop tuning and generate some features.</li>
+<li>Recommend to start with <code>max_depth</code> = 7. As depth is incresed, learning will take a longer time.</li>
+<li>For LightGBM, it is possible to control the number of leaves rather than max depth. This is nice because the resulting tree can be very deep but have a small number of leaves and not overfit.</li>
+</ul></li>
+<li><span style="color:green">subsample | bagging_fraction</span>
+<ul>
+<li>Controls fraction of objects to use when fitting a tree (between 0 and 1).</li>
+<li>In practice, using all objects at every iteration can lead to overfitting.</li>
+<li>Using less objects will make model fit slower, but generalize better. So this parameter works kind of like regularization.</li>
+</ul></li>
+<li><span style="color:green">colsample_bytree/colsample_bylevel | feature_fraction</span>
+<ul>
+<li>A tree may consider only a fraction of the features at every split. If the model is overfitting, try lowering these parameters.</li>
+</ul></li>
+<li><span style="color:red">min_child_weight, lambda, alpha | min_data_in_leaf, lambda_l1, lambda_l2</span>
+<ul>
+<li>These are regularization parameters.</li>
+<li>The most important is <code>min_child_weight</code>. Increasing this leads to a more conservative model. Setting it to 0 (minimum) leads to a less-constrained model. Depending on the task, this value can be 0, 5, 15, 300, etc. Try a wide range of values.</li>
+</ul></li>
+<li><span style="color:green">eta, num_round | learning_rate, num_iterations</span>
+<ul>
+<li><code>eta</code> is a learning rate.</li>
+<li><code>num_round</code> number of steps to perform (number of trees to build).</li>
+<li>At each iteration, a new tree is built and added to the model, with learning rate <code>eta</code>.</li>
+<li>In general, higher learning rate leads to faster fit to train set. More steps leat to better fit.</li>
+<li>Caveats: if <code>eta</code> is too high, the model will not converge. If <code>eta</code> is too small, the model will learn nothing after a large number of rounds, but a smaller rate leads to better generalization.</li>
+<li>We can freeze <code>eta</code> to be reasonably small (0.1 or 0.01), and then find the number of rounds till the model overfits. Usually we use early stopping: monitor the val loss and exit training when loss starts to go up. When the right number of rounds is found, do the following trick to make the resulting model better:
+<ul>
+<li>num_round = num_round * alpha</li>
+<li>eta = eta / alpha</li>
+</ul></li>
+</ul></li>
+<li>seed | *_seed
+<ul>
+<li>This is the random seed argument.</li>
+<li>It is recommended to fix seed before hand. In XGBoost, however, every change in param will lead to a different model.</li>
+<li>This param can also be used to verify that different random seeds to not change the training results much.</li>
 </ul></li>
 </ul>
 <hr />

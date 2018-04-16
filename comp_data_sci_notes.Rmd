@@ -15,6 +15,13 @@ knitr::opts_chunk$set(echo = TRUE)
 require("knitr")
 ```
 
+```{r echo=FALSE}
+txc <- function(txt, col) {
+  # color input text inline
+  paste("<font color='",col,"'>",txt,"</font>",sep="")
+}
+```
+
 # Introduction
 
 This is a set of notes for the Competitive Data Science course on Coursera.
@@ -1349,8 +1356,103 @@ $$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
     - Need careful validation, there are many ways to overfit.
     - Significant improvements only on specific datasets. Will not help in every competition.
 
+# Week 4
+
+## Hyperparameter tuning
+
+### Hyperparameter tuning I
+- 1. Select the most influential parameters
+    - There are many parameters and we can't tune all of them. Understand which params affect the model the most.
+- 2. Understand how exactly they influence the training.
+- 3. Tune them.
+    - a. Manually (change and examine)
+    - b. Automatically (hyperopt, etc.)
+
+#### Hyperparameter optimization software
+- The following is a list of software for automatic hyperparameter tuning.
+    - *Hyperopt*
+    - Scikit-optimize
+    - Spearmint
+    - GPyOpt
+    - RoBO
+    - SMAC3
+- Example usage:
+    ```
+    def xgb_score(param):
+        # run XGBoost with parameters `param`
+    
+    def xgb_hyperopt():
+        space = {
+            'eta' : 0.01,
+            ...
+            ...
+            ...
+        }
+    best = fmin(xgb_score, space, algo=tpe.suggest, max_evals=1000)
+    ```
+    - Define a function that will run our model with given set of params and return the validation score.
+    - Specify a search space.
+- The best strategy is to run overnight.
+- Try to pick parameter ranges that make sense.
+
+#### Parameter influence on model
+- Different values of params result in three different fitting behaviors:
+    - Underfitting: model is so constrained that it cannot even learn the train set.
+    - Good fit and generalization - this is the desired behavior.
+    - Overfitting: the model is so powerful that it overfits the train set and is not able to generalize at all.
+- When tuning params, try to understand if the model is currently under or over fitting. Adjust params to get closer to desired behavior.
+- Split all params to be tuned into two groups (color-coded):
+    - 1. <span style="color:green">Params that constrain the model</span>. If we increase these params, the model changes its behavior from overfitting to underfitting. Larger param values mean heavier constraint. Decrease these params to allow model to fit easier.
+    - 2. <span style="color:red">Params that lead to overfit</span>. Increasing these params lead to a better fit (overfit) on train set. Increase these params if model is underfitting; decrease if overfitting.
 
 
+
+
+
+### Hyperparameter tuning II
+#### Tree-based models
+- XGBoost and LightGBM are the gold standard. These are awesome implementations of a very versatile gradient-boosted decision tree model.
+- CatBoost appeared at the time that this course was being recorded, but looks promising.
+- List of models and software:
+    - GBDT
+        - XGBoost (dmlc/xgboost)
+        - LightGBM (Microsoft/LightGBM)
+        - CatBoost (catboost/catboost)
+    - RandomForest, ExtraTrees
+        - scikit-learn
+    - Others
+        - Regularized Greedy Forest (baidu/fast_rgf): implementation is very slow and hard to use.
+    
+#### GBDT
+- XGBoost and LightGBM both build decision trees one after another, gradually optimizing a given objective.
+- There are several params that control the tree building process (listed in order of XGBoost, LightGBM).
+- <span style="color:green">max_depth | max_depth/num_leaves</span>
+    - Maximum depth of a tree. Deeper trees fit a dataset better. Increasing this param leads to faster fitting to the train set. 
+    - Depending on the task, the optimal depth can vary a lot. If increasing the depth reduces validation error but does not lead to overfitting, this may be a sign there are important interactions to extract from the data. In this case, it's better to stop tuning and generate some features.
+    - Recommend to start with `max_depth` = 7. As depth is incresed, learning will take a longer time.
+    - For LightGBM, it is possible to control the number of leaves rather than max depth. This is nice because the resulting tree can be very deep but have a small number of leaves and not overfit.
+- <span style="color:green">subsample | bagging_fraction</span>
+    - Controls fraction of objects to use when fitting a tree (between 0 and 1).
+    - In practice, using all objects at every iteration can lead to overfitting.
+    - Using less objects will make model fit slower, but generalize better. So this parameter works kind of like regularization.
+- <span style="color:green">colsample_bytree/colsample_bylevel | feature_fraction</span>
+    - A tree may consider only a fraction of the features at every split. If the model is overfitting, try lowering these parameters.
+- <span style="color:red">min_child_weight, lambda, alpha | min_data_in_leaf, lambda_l1, lambda_l2</span>
+    - These are regularization parameters.
+    - The most important is `min_child_weight`. Increasing this leads to a more conservative model. Setting it to 0 (minimum) leads to a less-constrained model. Depending on the task, this value can be 0, 5, 15, 300, etc. Try a wide range of values.
+- <span style="color:green">eta, num_round | learning_rate, num_iterations</span>
+    - `eta` is a learning rate.
+    - `num_round` number of steps to perform (number of trees to build).
+    - At each iteration, a new tree is built and added to the model, with learning rate `eta`.
+    - In general, higher learning rate leads to faster fit to train set. More steps leat to better fit.
+    - Caveats: if `eta` is too high, the model will not converge. If `eta` is too small, the model will learn nothing after a large number of rounds, but a smaller rate leads to better generalization.
+    - We can freeze `eta` to be reasonably small (0.1 or 0.01), and then find the number of rounds till the model overfits. Usually we use early stopping: monitor the val loss and exit training when loss starts to go up. When the right number of rounds is found, do the following trick to make the resulting model better:
+        - num_round = num_round * alpha
+        - eta = eta / alpha
+- seed | *_seed
+    - This is the random seed argument.
+    - It is recommended to fix seed before hand. In XGBoost, however, every change in param will lead to a different model.
+    - This param can also be used to verify that different random seeds to not change the training results much.
 
 
 
