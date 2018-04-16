@@ -2332,6 +2332,43 @@ best = fmin(xgb_score, space, algo=tpe.suggest, max_evals=1000)</code></pre>
 <li>This param can also be used to verify that different random seeds to not change the training results much.</li>
 </ul></li>
 </ul>
+</div>
+<div id="randomforest-extratrees" class="section level4">
+<h4>RandomForest / ExtraTrees</h4>
+<ul>
+<li>ExtraTrees is a more randomized version of RF, and has the same parameters.</li>
+<li>RF builds each tree to be independent of others. So, having many trees does not lead to overfitting for RF, unlike for GBDT.</li>
+<li>n_estimators (the higher the better)
+<ul>
+<li>Controls the number of trees.</li>
+<li>At the start, it is a good idea to determine the number of trees that is sufficient.
+<ul>
+<li>Plot how validation error changes as n_estimators is increased.</li>
+<li>Before submitting to LB, set n_estimators higher just to be sure.</li>
+</ul></li>
+</ul></li>
+<li><span style="color:green">max_depth</span>
+<ul>
+<li>Controls depth of the trees.</li>
+<li>Can be set to <code>none</code> (unlimited depth). This can be useful when the features have repeated values and important interactions. A model with unlimited tree depth will also overfit quickly.</li>
+<li>Recommend to start with depth of 7.</li>
+<li>Usually, an optimal depth for RF is higher than for GBDT.</li>
+</ul></li>
+<li><span style="color:green">max_features</span>
+<ul>
+<li>Similar to col_sample from XGBoost.</li>
+</ul></li>
+<li><span style="color:red">min_samples_leaf</span>
+<ul>
+<li>Similar to min_child_weight from XGBoost.</li>
+</ul></li>
+<li><em>criterion</em>
+<ul>
+<li>Can evaluate a split by this criterion. Can be either Gini or Entropy. Choose the best performing one.</li>
+</ul></li>
+<li>random_state: random seed param</li>
+<li>n_jobs: number of cores.</li>
+</ul>
 <hr />
 </div>
 </div>

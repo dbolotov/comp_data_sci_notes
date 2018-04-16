@@ -1454,6 +1454,30 @@ $$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
     - It is recommended to fix seed before hand. In XGBoost, however, every change in param will lead to a different model.
     - This param can also be used to verify that different random seeds to not change the training results much.
 
+#### RandomForest / ExtraTrees
+- ExtraTrees is a more randomized version of RF, and has the same parameters.
+- RF builds each tree to be independent of others. So, having many trees does not lead to overfitting for RF, unlike for GBDT.
+- n_estimators (the higher the better)
+    - Controls the number of trees.
+    - At the start, it is a good idea to determine the number of trees that is sufficient.
+        - Plot how validation error changes as n_estimators is increased.
+        - Before submitting to LB, set n_estimators higher just to be sure.
+- <span style="color:green">max_depth</span>
+    - Controls depth of the trees. 
+    - Can be set to `none` (unlimited depth). This can be useful when the features have repeated values and important interactions. A model with unlimited tree depth will also overfit quickly.
+    - Recommend to start with depth of 7.
+    - Usually, an optimal depth for RF is higher than for GBDT.
+- <span style="color:green">max_features</span>
+    - Similar to col_sample from XGBoost.
+- <span style="color:red">min_samples_leaf</span>
+    - Similar to min_child_weight from XGBoost.
+- *criterion*
+    - Can evaluate a split by this criterion. Can be either Gini or Entropy. Choose the best performing one.
+- random_state: random seed param
+- n_jobs: number of cores.
+
+
+
 
 
 
