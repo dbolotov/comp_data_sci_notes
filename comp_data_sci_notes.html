@@ -1924,9 +1924,148 @@ traintest.T.drop_duplicates()</code></pre></li>
 <h2>Mean encodings</h2>
 <div id="concept-of-mean-encoding" class="section level3">
 <h3>Concept of mean encoding</h3>
+<ul>
+<li>This technique has a number of names, including likelihood encoding and target encoding.</li>
+<li>The general idea of this technique is to add new variables based on some feature together with the target.</li>
+</ul>
+<div id="using-target-to-generate-features" class="section level4">
+<h4>Using target to generate features</h4>
+<ul>
+<li>Example dataset with a feature that contains city names as strings, and the task is binary classification.</li>
+<li>The most obvious way is label encoding: each string gets converted into a numeric value starting at 0.</li>
+<li>With mean encoding, we replace each feature string with the mean of the target for that city.
+<ul>
+<li>For example, there are five rows with “Moscow” value, and the target has 2 positive examples and 3 negative. So the string “Moscow” is replaced with 2/5 = 0.4.</li>
+</ul></li>
+<li>This is the basic idea, but there are many pitfalls one should overcome in an actual competition.</li>
+</ul>
+</div>
+<div id="why-does-mean-encoding-work" class="section level4">
+<h4>Why does mean encoding work?</h4>
+<ul>
+<li>Imagine that the dataset is much bigger, and the feature contains hundreds of different cities.</li>
+<li>Plots (not shown) of feature histograms for class 0 and class 1:
+<ul>
+<li>For label encoding, we will always get a totally random picture, because there is no logical order.</li>
+<li>For mean encoding, the classes look way more separable, and the plot looks kind of sorted.</li>
+</ul></li>
+<li>It turns out that this sorting quality of mean encoding is quite helpful.</li>
+<li>Remember that gradient boosting trees are the most popular and effective way to solve ML problems. One of the few downsides of GBT is an inability to handle high cardinality categorical variables.</li>
+<li>With mean encoding, we can compensate for the fact that trees have limited depth. We can reach better loss with sorted trees. Plot (not shown) of loss vs tree depth, showing that label encoding generally has lower loss.</li>
+<li>In general, the more non-linear and complicated feature-target dependency, the more effective mean encoding is.</li>
+</ul>
+</div>
+</div>
+<div id="indicators-of-usefulness-of-mean-encoding" class="section level3">
+<h3>Indicators of usefulness of mean encoding</h3>
+<ul>
+<li>The presence of categorical variables with a lot of levels is already a good indicator, but we need to go deeper.</li>
+<li>Example: XGBoost learning logs (roc auc score vs iteration number) from Spring Leaf competition.
+<ul>
+<li>By increasing the tree depth (from 7 to 9 to 11), the score becomes better and better (nearly perfect). This is normal.</li>
+<li>But we don’t actually overfit, since the validation score also increases, and that’s weird.</li>
+<li>This is a sign that the trees need a huge number of splits to extract information from some variable; we can check this from the model dump. It turns out that some features have a tremendous amount of split points, like 1200 to 1600. The model tries to treat all those categories differently, and they are also very important for predicting the target.</li>
+<li>We can help the model by mean encoding.</li>
+</ul></li>
+</ul>
+</div>
+<div id="ways-to-use-target-variable" class="section level3">
+<h3>Ways to use target variable</h3>
+<ul>
+<li>There are several ways to use the target variable. Consider that goods is the number of ones in a group, and bads is number of zeros.
+<ul>
+<li>Likelihood = goods / (goods + bads) = mean(target)</li>
+<li>Weight of Evidence = ln(goods/bads)*100</li>
+<li>Count = goods = sum(target)</li>
+<li>Diff = goods - bads</li>
+</ul></li>
+<li>Springleaf example
+<ul>
+<li><p>The following snippet shows how to construct a mean encoding for an arbitrary column, and map it into new data frames (<code>train_new</code> and <code>val_new</code>):</p>
+<pre><code>means = X_tr.groupby(col).target.mean()
+train_new[col+'_mean_target'] = train_new[col].map(means)
+val_new[col+'_mean_target'] = val_new[col].map(means)</code></pre></li>
+<li><p>Fit xgboost on this new data: ``` dtrain = xgb.DMatrix(train_new, label=y_tr) dvalid = xgb.DMatrix(val_new, label=y_val)</p></li>
+</ul>
+evallist = [(dtrain, ‘train’), (dvalid, ‘eval’)] evals_result3 = {} model = xgb.train(xgb_par, dtrain, 3000, evals=evallist, verbose_eval=30, evals_result=evals_result3, early_stopping_rounds=50) ```
+<ul>
+<li>Something is definitely not right with the result of the above code. After several epochs, train AUC is nearly 1, while validation score saturates around 0.55, which is practically noise. This is a clear sign of terrible overfitting.
+<ul>
+<li>In this case we validated correctly, and used train data to only estimate mean encodings. If we would have estimated mean encoding before the train/val split, we would not notice such an overfitting.</li>
+<li>With rare categories, it’s pretty common to get results like in this example: target=0 in train, and target=1 in validation. Mean encoding turns into a perfect feature for such categories. That’s why we immediately get very good scores on train, but fail hard on validation.</li>
+</ul></li>
+<li>We obviously cannot use mean encodings like this in practice. We need to deal with overfitting first.</li>
+</ul></li>
+</ul>
 </div>
 <div id="regularization" class="section level3">
 <h3>Regularization</h3>
+<ul>
+<li>This section covers 4 different methods of regularization.</li>
+</ul>
+<div id="cv-loop-inside-training-data" class="section level4">
+<h4>CV loop inside training data</h4>
+<ul>
+<li>This is an intuitive and robust method.</li>
+<li>For a given data point, we don’t want to use the associated target.</li>
+<li>So we separate the data into k non-intersecting subsets (folds). To get mean encodings for a subset, use the other subsets.</li>
+<li>Iteratively walk through all the data subsets. Usually 4-5 folds gets decent results.</li>
+<li>There is still leakage from the target variable. This becomes apparent if we use LOO to separate the data.</li>
+<li>Example of leakage when encoding with LOO scheme.
+<ul>
+<li>Dataset has 6 rows, where the feature column has “Moscow” string. The target has 3 “0” and 2 “1” labels.</li>
+<li>Example encoding: for the first row (target=“0”) the encoding is 0.5, because the rest of the data has 2 “1” and 2 “0”.</li>
+<li>The encoded feature now perfectly splits the data: rows with the feature &gt;= 0.5 have target 0, and 1 otherwise.</li>
+<li>The target variable is not explicitly used, but this encoding is biased.</li>
+<li>This effect remains valid even for the k-fold scheme, just milder.</li>
+</ul></li>
+<li>In practice, with enough data and using 4-5 folds, mean encodings will work fine with this regularization strategy.</li>
+<li>Application in practice: ``` y_tr = df_tr[‘target’].values #target variable skf = StratifiedKFold(y_tr, 5, shuffle = True, random_state = 123)</li>
+</ul>
+<p>for tr_ind, val_ind in skf: X_tr, X_val = df_tr.iloc[tr_ind], df_tr.iloc[val_ind] for col in cols: #iterate through the columns we want to encode means = X_val[col].map(X_tr.groupby(col).target.mean()) X_val[col+’_mean_target’] = means train_new.iloc[val_ind] = X_val</p>
+<p>prior = df_tr[‘target’].mean() #global mean train_new.fillna(prior, inplace = True) # fill NANs with global mean ``<code>-</code>df_tr<code>: training data frame     -</code>train_new<code>: data frame with encoded features     - In outer</code>for<code>loop, iterate through the stratified folds to separate data into chunks.     -</code>X_tr<code>is used to estimate the endcoding, and</code>X_val<code>is used to apply it.     - In inner</code>for<code>loop, iterate through columns and map estimated encodings to to</code>X-val` data frame. - After the outer loop, fill new data frame with the results. - Some rare categories are present only in a single fold, so we don’t have the data to estimate target mean. Fill these NANs with the global mean.</p>
+</div>
+<div id="smoothing" class="section level4">
+<h4>Smoothing</h4>
+<ul>
+<li>Smoothing is based on the following idea: if a category is big (has a lot of data points), then we can trust the estimated encoding. But if the category is rare, it’s the opposite.</li>
+<li>Regularization: (mean(target) * nrows + globalmean * alpha)/(nrows+alpha)
+<ul>
+<li>alpha is a hyperparam that controls the amount of regularization: no regularization when alpha=0, and globalmean dominates as alpha approaches infinity.</li>
+</ul></li>
+<li>In some sense, alpha is equal to the category size we can trust.</li>
+<li>It’s also possible to use any other formula - anything that punishes encodings of rare categories can be considered smoothing.</li>
+<li>Smoothing only works when combined together with some other regularization method.</li>
+</ul>
+</div>
+<div id="adding-noise" class="section level4">
+<h4>Adding noise</h4>
+<ul>
+<li>Without regularization, mean encodings have better quality for train than test data.</li>
+<li>By adding noise, we simply degrade the quality of encoding on training data.</li>
+<li>This method is pretty unstable and it’s hard to make it work. The main problem is the amount of noise we need to add. Too much noise turns the feature into garbage, while not enough noise means less regularization.</li>
+<li>This method is usually used together with LOO, and needs to be diligently fine-tuned. Thus it is not the best option if time is short.</li>
+</ul>
+</div>
+<div id="expanding-mean" class="section level4">
+<h4>Expanding mean</h4>
+<ul>
+<li>Fix some sorting order of the data, and use only rows from 0 to N-1 to calculate encoding for row N.</li>
+<li><p>Implementation in <code>pandas</code>:</p>
+<pre><code>cumsum = df_tr.groupby(col)['target'].cumsum() - df_tr['target']
+cumcnt = df_tr.groupby(col).cumcount()
+train_new[col+'_mean_target'] = cumsum/cumcnt</code></pre></li>
+<li>This method introduces the least amount of leakage from the target variable, and requires no hyperparameter tuning.</li>
+<li>The only downside is that feature quality is not uniform, but this is not a big deal. We can average models fitted on encodings calculated from different data permutations.</li>
+<li><p>This method is used in the CatBoost library.</p></li>
+</ul>
+</div>
+<div id="summary-1" class="section level4">
+<h4>Summary</h4>
+<ul>
+<li>CV loop or expanding mean are recommended for practical tasks, as they are the most robust and easy to tune.</li>
+</ul>
+</div>
 </div>
 <div id="extensions-and-generalizations" class="section level3">
 <h3>Extensions and generalizations</h3>

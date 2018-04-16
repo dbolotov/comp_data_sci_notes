@@ -1159,8 +1159,130 @@ $$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
 ## Mean encodings
 
 ### Concept of mean encoding
+- This technique has a number of names, including likelihood encoding and target encoding.
+- The general idea of this technique is to add new variables based on some feature together with the target.
+
+#### Using target to generate features
+- Example dataset with a feature that contains city names as strings, and the task is binary classification. 
+- The most obvious way is label encoding: each string gets converted into a numeric value starting at 0.
+- With mean encoding, we replace each feature string with the mean of the target for that city.
+    - For example, there are five rows with "Moscow" value, and the target has 2 positive examples and 3 negative. So the string "Moscow" is replaced with 2/5 = 0.4.
+- This is the basic idea, but there are many pitfalls one should overcome in an actual competition.
+
+#### Why does mean encoding work?
+- Imagine that the dataset is much bigger, and the feature contains hundreds of different cities.
+- Plots (not shown) of feature histograms for class 0 and class 1:
+    - For label encoding, we will always get a totally random picture, because there is no logical order.
+    - For mean encoding, the classes look way more separable, and the plot looks kind of sorted. 
+- It turns out that this sorting quality of mean encoding is quite helpful. 
+- Remember that gradient boosting trees are the most popular and effective way to solve ML problems. One of the few downsides of GBT is an inability to handle high cardinality categorical variables. 
+- With mean encoding, we can compensate for the fact that trees have limited depth. We can reach better loss with sorted trees. Plot (not shown) of loss vs tree depth, showing that label encoding generally has lower loss.
+- In general, the more non-linear and complicated feature-target dependency, the more effective mean encoding is. 
+
+### Indicators of usefulness of mean encoding
+- The presence of categorical variables with a lot of levels is already a good indicator, but we need to go deeper.
+- Example: XGBoost learning logs (roc auc score vs iteration number) from Spring Leaf competition. 
+    - By increasing the tree depth (from 7 to 9 to 11), the score becomes better and better (nearly perfect). This is normal.
+    - But we don't actually overfit, since the validation score also increases, and that's weird. 
+    - This is a sign that the trees need a huge number of splits to extract information from some variable; we can check this from the model dump. It turns out that some features have a tremendous amount of split points, like 1200 to 1600. The model tries to treat all those categories differently, and they are also very important for predicting the target.
+    - We can help the model by mean encoding.
+
+### Ways to use target variable
+- There are several ways to use the target variable. Consider that goods is the number of ones in a group, and bads is number of zeros.
+    - Likelihood = goods / (goods + bads) = mean(target)
+    - Weight of Evidence = ln(goods/bads)*100
+    - Count = goods = sum(target)
+    - Diff = goods - bads
+- Springleaf example
+    - The following snippet shows how to construct a mean encoding for an arbitrary column, and map it into new data frames (`train_new` and `val_new`):
+    ```
+    means = X_tr.groupby(col).target.mean()
+    train_new[col+'_mean_target'] = train_new[col].map(means)
+    val_new[col+'_mean_target'] = val_new[col].map(means)
+    ```
+    - Fit xgboost on this new data:
+    ```
+    dtrain = xgb.DMatrix(train_new, label=y_tr)
+    dvalid = xgb.DMatrix(val_new, label=y_val)
+    
+    evallist = [(dtrain, 'train'), (dvalid, 'eval')]
+    evals_result3 = {}
+    model = xgb.train(xgb_par, dtrain, 3000, evals=evallist, verbose_eval=30,
+            evals_result=evals_result3, early_stopping_rounds=50)
+    ```
+    - Something is definitely not right with the result of the above code. After several epochs, train AUC is nearly 1, while validation score saturates around 0.55, which is practically noise. This is a clear sign of terrible overfitting.
+        - In this case we validated correctly, and used train data to only estimate mean encodings. If we would have estimated mean encoding before the train/val split, we would not notice such an overfitting.
+        - With rare categories, it's pretty common to get results like in this example: target=0 in train, and target=1 in validation. Mean encoding turns into a perfect feature for such categories. That's why we immediately get very good scores on train, but fail hard on validation.
+    - We obviously cannot use mean encodings like this in practice. We need to deal with overfitting first.
+
 
 ### Regularization
+- This section covers 4 different methods of regularization.
+
+#### CV loop inside training data
+- This is an intuitive and robust method.
+- For a given data point, we don't want to use the associated target.
+- So we separate the data into k non-intersecting subsets (folds). To get mean encodings for a subset, use the other subsets.
+- Iteratively walk through all the data subsets. Usually 4-5 folds gets decent results.
+- There is still leakage from the target variable. This becomes apparent if we use LOO to separate the data.
+- Example of leakage when encoding with LOO scheme.
+      - Dataset has 6 rows, where the feature column has "Moscow" string. The target has 3 "0" and 2 "1" labels.
+      - Example encoding: for the first row (target="0") the encoding is 0.5, because the rest of the data has 2 "1" and 2 "0".
+      - The encoded feature now perfectly splits the data: rows with the feature >= 0.5 have target 0, and 1 otherwise.
+      - The target variable is not explicitly used, but this encoding is biased.
+      - This effect remains valid even for the k-fold scheme, just milder.
+- In practice, with enough data and using 4-5 folds, mean encodings will work fine with this regularization strategy.
+- Application in practice: 
+  ```
+  y_tr = df_tr['target'].values #target variable
+  skf = StratifiedKFold(y_tr, 5, shuffle = True, random_state = 123)
+  
+  for tr_ind, val_ind in skf:
+      X_tr, X_val = df_tr.iloc[tr_ind], df_tr.iloc[val_ind]
+      for col in cols: #iterate through the columns we want to encode
+          means = X_val[col].map(X_tr.groupby(col).target.mean())
+          X_val[col+'_mean_target'] = means
+      train_new.iloc[val_ind] = X_val
+  
+  prior = df_tr['target'].mean() #global mean
+  train_new.fillna(prior, inplace = True) # fill NANs with global mean
+  ```
+    - `df_tr`: training data frame
+    - `train_new`: data frame with encoded features
+    - In outer `for` loop, iterate through the stratified folds to separate data into chunks.
+    - `X_tr` is used to estimate the endcoding, and `X_val` is used to apply it.
+    - In inner `for` loop, iterate through columns and map estimated encodings to to `X-val` data frame.
+    - After the outer loop, fill new data frame with the results.
+    - Some rare categories are present only in a single fold, so we don't have the data to estimate target mean. Fill these NANs with the global mean.
+
+#### Smoothing
+- Smoothing is based on the following idea: if a category is big (has a lot of data points), then we can trust the estimated encoding. But if the category is rare, it's the opposite.
+- Regularization: (mean(target) \* nrows + globalmean \* alpha)/(nrows+alpha)
+    - alpha is a hyperparam that controls the amount of regularization: no regularization when alpha=0, and globalmean dominates as alpha approaches infinity.
+- In some sense, alpha is equal to the category size we can trust.
+- It's also possible to use any other formula - anything that punishes encodings of rare categories can be considered smoothing.
+- Smoothing only works when combined together with some other regularization method.
+
+#### Adding noise
+- Without regularization, mean encodings have better quality for train than test data.
+- By adding noise, we simply degrade the quality of encoding on training data.
+- This method is pretty unstable and it's hard to make it work. The main problem is the amount of noise we need to add. Too much noise turns the feature into garbage, while not enough noise means less regularization.
+- This method is usually used together with LOO, and needs to be diligently fine-tuned. Thus it is not the best option if time is short.
+
+#### Expanding mean
+- Fix some sorting order of the data, and use only rows from 0 to N-1 to calculate encoding for row N.
+- Implementation in `pandas`:
+    ```
+    cumsum = df_tr.groupby(col)['target'].cumsum() - df_tr['target']
+    cumcnt = df_tr.groupby(col).cumcount()
+    train_new[col+'_mean_target'] = cumsum/cumcnt
+    ```
+- This method introduces the least amount of leakage from the target variable, and requires no hyperparameter tuning.
+- The only downside is that feature quality is not uniform, but this is not a big deal. We can average models fitted on encodings calculated from different data permutations.
+- This method is used in the CatBoost library.
+
+#### Summary
+- CV loop or expanding mean are recommended for practical tasks, as they are the most robust and easy to tune.
 
 ### Extensions and generalizations
 
