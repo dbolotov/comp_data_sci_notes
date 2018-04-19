@@ -342,7 +342,7 @@ This is a set of notes for the Competitive Data Science course on Coursera.
     - [How to Retrain Inception's Final Layer for New Categories in Tensorflow](https://www.tensorflow.org/tutorials/image_retraining)
     - [Fine-tuning Deep Learning Models in Keras](https://flyyufelix.github.io/2016/10/08/fine-tuning-in-keras-part2.html)
 
-***
+* * *
 
 # Week 2
 
@@ -757,6 +757,8 @@ Notice, that these are *validation* schemes are supposed to be used to estimate 
 - [Page about data leakages on Kaggle](https://www.kaggle.com/wiki/Leakage)
 
 
+* * *
+
 
 # Week 3
 
@@ -796,7 +798,7 @@ $$MSE = \frac{1}{N}\sum_{i=1}^N(y_i-\hat{y_i})^2$$
 - MSE measures the average squared error of the predictions.
 - Visualization: for a dataset (of 5 points), how will the error change if we fix all predictions but one to be perfect, and vary the value of one prediction?
     - The MSE plot will look like a parabola, with the lowest value being when the prediction equals the target.
-- Baseline model
+- **Baseline model**
     - The simplest baseline model does not use any features, and just predicts a constant value $\alpha$ that minimizes the MSE of the dataset.
     - The value $\alpha$ can be found by setting the derivative of MSE w.r.t. $\alpha$ to 0, and solve for $\alpha$.
     - The best $\alpha$ is the mean value of the target column.
@@ -828,7 +830,7 @@ $$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
 - This metric penalizes large errors *less* than MSE does, and so is not as sensitive to outliers as MSE.
 - MAE is widely used in finance, where a \$10 error is usually exactly 2 times worse than a \$5 error. On the other hand, MSE thinks that a \$10 error  is 4 times worse than a \$5 error. MSE is easier to justify and explain.
 - MAE is *not* the same as MSE from an optimization perspective.
-- Baseline model
+- **Baseline model**
     - The best constant $\alpha$ for MAE is the median of the target values. 
 - MAE gradients:
     - The gradient for MAE w.r.t. predictions is a step function: it equals -1 when $\hat{y_i} < y_i$, and 1 when $\hat{y_i} > y_i$.
@@ -946,7 +948,7 @@ $$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
 - In other words, AUC is the fraction of correctly ordered pairs: AUC = (# correctly ordered pairs)/(total number of pairs) = 1 - (# incorrectly ordered pairs)/(total number of pairs).
 
 
-- Baseline:
+- **Baseline model**:
     - AUC doesn't depend on the value of the predictions, so all constants will lead to the same score.
     - This score will be around 0.5.
 

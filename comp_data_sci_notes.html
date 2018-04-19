@@ -1278,6 +1278,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <li><a href="https://www.kaggle.com/olegtrott/the-perfect-score-script">Perfect score script by Oleg Trott</a> – used to probe leaderboard</li>
 <li><a href="https://www.kaggle.com/wiki/Leakage">Page about data leakages on Kaggle</a></li>
 </ul>
+<hr />
 </div>
 </div>
 </div>
@@ -1333,7 +1334,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 </ul>
 <div id="mse-mean-square-error" class="section level4">
 <h4>MSE: Mean Square Error</h4>
-<p><span class="math display">\[MSE = \frac{1}{N}\sum_{i=1}^N(y_i-\hat{y_i})^2\]</span> - This is the most common metric for regression problems. Used when there is no specific preference to the problem solution, or no other metric is known. - MSE measures the average squared error of the predictions. - Visualization: for a dataset (of 5 points), how will the error change if we fix all predictions but one to be perfect, and vary the value of one prediction? - The MSE plot will look like a parabola, with the lowest value being when the prediction equals the target. - Baseline model - The simplest baseline model does not use any features, and just predicts a constant value <span class="math inline">\(\alpha\)</span> that minimizes the MSE of the dataset. - The value <span class="math inline">\(\alpha\)</span> can be found by setting the derivative of MSE w.r.t. <span class="math inline">\(\alpha\)</span> to 0, and solve for <span class="math inline">\(\alpha\)</span>. - The best <span class="math inline">\(\alpha\)</span> is the mean value of the target column. - There are two other metrics related to MSE, discussed below.</p>
+<p><span class="math display">\[MSE = \frac{1}{N}\sum_{i=1}^N(y_i-\hat{y_i})^2\]</span> - This is the most common metric for regression problems. Used when there is no specific preference to the problem solution, or no other metric is known. - MSE measures the average squared error of the predictions. - Visualization: for a dataset (of 5 points), how will the error change if we fix all predictions but one to be perfect, and vary the value of one prediction? - The MSE plot will look like a parabola, with the lowest value being when the prediction equals the target. - <strong>Baseline model</strong> - The simplest baseline model does not use any features, and just predicts a constant value <span class="math inline">\(\alpha\)</span> that minimizes the MSE of the dataset. - The value <span class="math inline">\(\alpha\)</span> can be found by setting the derivative of MSE w.r.t. <span class="math inline">\(\alpha\)</span> to 0, and solve for <span class="math inline">\(\alpha\)</span>. - The best <span class="math inline">\(\alpha\)</span> is the mean value of the target column. - There are two other metrics related to MSE, discussed below.</p>
 <div id="rmse-root-mean-square-error" class="section level5">
 <h5>RMSE: Root mean square error</h5>
 <ul>
@@ -1371,7 +1372,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <li>This metric penalizes large errors <em>less</em> than MSE does, and so is not as sensitive to outliers as MSE.</li>
 <li>MAE is widely used in finance, where a $10 error is usually exactly 2 times worse than a $5 error. On the other hand, MSE thinks that a $10 error is 4 times worse than a $5 error. MSE is easier to justify and explain.</li>
 <li>MAE is <em>not</em> the same as MSE from an optimization perspective.</li>
-<li>Baseline model
+<li><strong>Baseline model</strong>
 <ul>
 <li>The best constant <span class="math inline">\(\alpha\)</span> for MAE is the median of the target values.</li>
 </ul></li>
@@ -1560,7 +1561,7 @@ traintest.T.drop_duplicates()</code></pre></li>
 <li>Consider all pairs of objects, such that one object is from class 0, and the other is from class 1.</li>
 <li>AUC is the probability that score for 1 will be higher than score for 0.</li>
 <li><p>In other words, AUC is the fraction of correctly ordered pairs: AUC = (# correctly ordered pairs)/(total number of pairs) = 1 - (# incorrectly ordered pairs)/(total number of pairs).</p></li>
-<li>Baseline:
+<li><strong>Baseline model</strong>:
 <ul>
 <li>AUC doesn’t depend on the value of the predictions, so all constants will lead to the same score.</li>
 <li>This score will be around 0.5.</li>
