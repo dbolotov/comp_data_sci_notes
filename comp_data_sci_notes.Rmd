@@ -1478,8 +1478,16 @@ $$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
 - random_state: random seed param
 - n_jobs: number of cores.
 
+### Hyperparameter tuning III
+
+#### Neural networks
+- Which framework to use?
+    - Keras is the most popular on Kaggle, and has the simplest interface.
+    - TensorFlow - extensively used by companies in production
+    - PyTorch - used in deep learning research community
 
 
+#### Linear models
 
 
 
