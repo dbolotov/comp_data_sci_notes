@@ -2384,11 +2384,111 @@ best = fmin(xgb_score, space, algo=tpe.suggest, max_evals=1000)</code></pre>
 <li>PyTorch - used in deep learning research community</li>
 </ul></li>
 </ul>
+<div id="tuning-hyparameters" class="section level5">
+<h5>Tuning hyparameters</h5>
+<ul>
+<li><span style="color:green">Number of neurons per layer</span>. Increasing the number of neurons per layer lets the NN learn more complex decision boundaries, and thus overfit faster.</li>
+<li><span style="color:green">Number of hidden layers</span>. Increasing number of layers should result in the same, but due to optimization problems, the learning can even stop to converge.
+<ul>
+<li>Recommendation: start with 2-3 layers, 64 units per layer. Make sure the training and validation losses decrease. Then try to find the config that is able to overfit the training set (just as a sanity check). Then start tuning the network.</li>
+</ul></li>
+<li>Optimization method. Broadly speaking, we can pick either vanilla stochastic gradient descent with momentum or a modern adaptive method.
+<ul>
+<li><span style="color:red">SGD + momentum</span>- converges slower, but the trained network generalizes better.</li>
+<li><span style="color:green">Adam/Adadelta/Adagrad/…</span> - these can fit faster, but also lead to overfitting in practice. These methods are useful, but in settings other than classification and regression.</li>
+</ul></li>
+<li><span style="color:green">Batch size</span>. Large batch size leads (e.g., 500) leads to overfitting.
+<ul>
+<li>Recommendation: pick 32 or 64. If the network is still overfitting, decrease batch size. If underfitting, increase batch size.</li>
+<li>Note that if the number of epochs is fixed, then NN with batch size reduced by factor of 2 gets updated twice as much. Maybe reduce the number of epochs.</li>
+<li>The batch size should not be too small, or the gradient will be too noisy.</li>
+</ul></li>
+<li>Learning rate. When LR is too high, network will not converge. When LR is too low, the network will learn forever.
+<ul>
+<li>Recommendation: start with large LR (0.1), and lower it to find when network converges.</li>
+<li>Rule of thumb connection between learning rate and batch size: if batch size is increased by factor <span class="math inline">\(\alpha\)</span>, can increase LR by the same factor. But remember that larger batch size leads to more overfitting, so need good regularization.</li>
+</ul></li>
+<li>Regularization:
+<ul>
+<li><span style="color:red">L2/L1 for weights</span>: used some time ago.</li>
+<li><span style="color:red">Dropout/Dropconnect</span>: popular currently. Can vary the dropout probability and place where this layer is inserted. Usually added closer toward end of the network. If added right after input, some information is lost right away, and perfomance degradation is observed.</li>
+<li><span style="color:red">Static dropconnect</span>:
+<ul>
+<li>Between input and a hidden layer (of 128 units), insert another hidden layer of 4096 units. To regularize, randomly drop 99% of connections between input and this new hidden layer. In dropconnect, we drop random connections at every learning iteration, while in static dropconnect, we fix connectivity pattern for the whole learning process.</li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
 </div>
 <div id="linear-models-1" class="section level4">
 <h4>Linear models</h4>
-<hr />
+<ul>
+<li>Frameworks
+<ul>
+<li>Scikit-learn
+<ul>
+<li>SVC/SVR - wrappers for libLinear and libSVM
+<ul>
+<li>Even though a carefully tuned LightGBM would probably beat SVM even on a large sparse set, SVMs require almost no tuning.</li>
+<li>Compile these yourself for multicore support.</li>
+<li>This section only discusses linear SVM (not kernel SVM).</li>
+</ul></li>
+<li>LogisticRegression/LinearRegression + regularizers</li>
+<li>SGDClassifier/SGDRegressor</li>
+</ul></li>
+<li>Vowpal Wabbit
+<ul>
+<li>Use for datasets that do not fit in memory. Data is read line-by-line from disk, and the entire dataset is not loaded into memory at once (online learning).</li>
+<li>FTRL (Follow The Regularized Leader) - a method of online learning for linear models. Popular some time ago. (There are also other implementations in pure python.)</li>
+</ul></li>
+</ul></li>
+</ul>
+<div id="tuning-hyperparameters" class="section level5">
+<h5>Tuning hyperparameters</h5>
+<ul>
+<li><span style="color:red">Regularization parameter (C, alpha, lambda, …)</span>:
+<ul>
+<li>Recommendation: start with very small value and increase it.</li>
+<li>Note: The parameter C in SVM is inversely proportional to regularization weight, so the dynamics are opposite. SVC starts to work slower as C increases.
+<ul>
+<li>For SVM, start with C = 10^-6, then increase by factor of 10.</li>
+</ul></li>
+<li>Try both L1 and L2 regularization. L1 gives weight sparsity, which can be used for feature selection.</li>
+</ul></li>
+</ul>
 </div>
+</div>
+<div id="general-advice" class="section level4">
+<h4>General advice</h4>
+<ul>
+<li>Do not spend too much time tuning hyperparameters (especially when the competition has only started).
+<ul>
+<li>You cannot win a competition by tuning parameters. Appropriate features, hacks, leaks and insights will give much more than a model carefully tuned on all features.</li>
+<li>Only do if you don’t have any more ideas or you have spare computational resources.</li>
+</ul></li>
+<li>Be patient.
+<ul>
+<li>It can take thousands of rounds of GBDT or neural nets to fit.</li>
+</ul></li>
+<li>Average everything.
+<ul>
+<li>Over random seed: when submitting, learn 5 models starting from different seeds, and average the predictions.</li>
+<li>Over small deviations from optimal parameters.
+<ul>
+<li>e.g. if optimal <em>max_depth</em> is 5, make models with 4,5, and 6.</li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="additional-material-and-links-7" class="section level3">
+<h3>Additional material and links</h3>
+<ul>
+<li><a href="http://scikit-learn.org/stable/modules/grid_search.html">Tuning the hyper-parameters of an estimator (sklearn)</a></li>
+<li><a href="http://fastml.com/optimizing-hyperparams-with-hyperopt/">Optimizing hyperparameters with hyperopt</a></li>
+<li><a href="https://www.analyticsvidhya.com/blog/2016/02/complete-guide-parameter-tuning-gradient-boosting-gbm-python/">Complete Guide to Parameter Tuning in Gradient Boosting (GBM) in Python</a></li>
+</ul>
+<hr />
 </div>
 </div>
 </div>

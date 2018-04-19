@@ -1486,12 +1486,63 @@ $$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
     - TensorFlow - extensively used by companies in production
     - PyTorch - used in deep learning research community
 
+##### Tuning hyparameters
+- <span style="color:green">Number of neurons per layer</span>. Increasing the number of neurons per layer lets the NN learn more complex decision boundaries, and thus overfit faster.
+- <span style="color:green">Number of hidden layers</span>. Increasing number of layers should result in the same, but due to optimization problems, the learning can even stop to converge.
+    - Recommendation: start with 2-3 layers, 64 units per layer. Make sure the training and validation losses decrease. Then try to find the config that is able to overfit the training set (just as a sanity check). Then start tuning the network.
+- Optimization method. Broadly speaking, we can pick either vanilla stochastic gradient descent with momentum or a modern adaptive method.
+    - <span style="color:red">SGD + momentum</span>- converges slower, but the trained network generalizes better.
+    - <span style="color:green">Adam/Adadelta/Adagrad/...</span> - these can fit faster, but also lead to overfitting in practice. These methods are useful, but in settings other than classification and regression.
+- <span style="color:green">Batch size</span>. Large batch size leads (e.g., 500) leads to overfitting.
+    - Recommendation: pick 32 or 64. If the network is still overfitting, decrease batch size. If underfitting, increase batch size.
+    - Note that if the number of epochs is fixed, then NN with batch size reduced by factor of 2 gets updated twice as much. Maybe reduce the number of epochs.
+    - The batch size should not be too small, or the gradient will be too noisy.
+- Learning rate. When LR is too high, network will not converge. When LR is too low, the network will learn forever.
+    - Recommendation: start with large LR (0.1), and lower it to find when network converges.
+    - Rule of thumb connection between learning rate and batch size: if batch size is increased by factor $\alpha$, can increase LR by the same factor. But remember that larger batch size leads to more overfitting, so need good regularization.
+- Regularization:
+    - <span style="color:red">L2/L1 for weights</span>: used some time ago.
+    - <span style="color:red">Dropout/Dropconnect</span>: popular currently. Can vary the dropout probability and place where this layer is inserted. Usually added closer toward end of the network. If added right after input, some information is lost right away, and perfomance degradation is observed.
+    - <span style="color:red">Static dropconnect</span>:
+        - Between input and a hidden layer (of 128 units), insert another hidden layer of 4096 units. To regularize, randomly drop 99% of connections between input and this new hidden layer. In dropconnect, we drop random connections at every learning iteration, while in static dropconnect, we fix connectivity pattern for the whole learning process.
 
 #### Linear models
+- Frameworks
+    - Scikit-learn
+        - SVC/SVR - wrappers for libLinear and libSVM
+            - Even though a carefully tuned LightGBM would probably beat SVM even on a large sparse set, SVMs require almost no tuning.
+            - Compile these yourself for multicore support.
+            - This section only discusses linear SVM (not kernel SVM).
+        - LogisticRegression/LinearRegression + regularizers
+        - SGDClassifier/SGDRegressor
+    - Vowpal Wabbit
+        - Use for datasets that do not fit in memory. Data is read line-by-line from disk, and the entire dataset is not loaded into memory at once (online learning).
+        - FTRL (Follow The Regularized Leader) - a method of online learning for linear models. Popular some time ago. (There are also other implementations in pure python.)
 
+##### Tuning hyperparameters
+- <span style="color:red">Regularization parameter (C, alpha, lambda, ...)</span>:
+    - Recommendation: start with very small value and increase it.
+    - Note: The parameter C in SVM is inversely proportional to regularization weight, so the dynamics are opposite. SVC starts to work slower as C increases.
+        - For SVM, start with C = 10^-6, then increase by factor of 10.
+    - Try both L1 and L2 regularization. L1 gives weight sparsity, which can be used for feature selection.
 
-
-
+#### General advice
+- Do not spend too much time tuning hyperparameters (especially when the competition has only started).
+    - You cannot win a competition by tuning parameters. Appropriate features, hacks, leaks and insights will give much more than a model carefully tuned on all features.
+    - Only do if you don't have any more ideas or you have spare computational resources.
+- Be patient.
+    - It can take thousands of rounds of GBDT or neural nets to fit.
+- Average everything.
+    - Over random seed: when submitting, learn 5 models starting from different seeds, and average the predictions.
+    - Over small deviations from optimal parameters.
+        - e.g. if optimal *max_depth* is 5, make models with 4,5, and 6.
+        
+### Additional material and links
+- [Tuning the hyper-parameters of an estimator (sklearn)](http://scikit-learn.org/stable/modules/grid_search.html)
+- [Optimizing hyperparameters with hyperopt](http://fastml.com/optimizing-hyperparams-with-hyperopt/)
+- [Complete Guide to Parameter Tuning in Gradient Boosting (GBM) in Python](https://www.analyticsvidhya.com/blog/2016/02/complete-guide-parameter-tuning-gradient-boosting-gbm-python/)
+        
+        
 * * * 
 
 # Course summary - most important points
