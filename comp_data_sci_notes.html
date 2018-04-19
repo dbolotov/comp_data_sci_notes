@@ -2496,8 +2496,10 @@ best = fmin(xgb_score, space, algo=tpe.suggest, max_evals=1000)</code></pre>
 <h2>Tips and tricks</h2>
 <div id="practical-guide" class="section level3">
 <h3>Practical guide</h3>
-<div id="before-you-enter-a-competition" class="section level4">
-<h4>Before you enter a competition</h4>
+<div id="alexander-guschins-tips" class="section level4">
+<h4>Alexander Guschin’s tips</h4>
+<div id="before-you-enter-a-competition" class="section level5">
+<h5>Before you enter a competition</h5>
 <ul>
 <li>Define your goals. What can you get out of the competition?
 <ul>
@@ -2517,13 +2519,151 @@ best = fmin(xgb_score, space, algo=tpe.suggest, max_evals=1000)</code></pre>
 </ul></li>
 </ul>
 </div>
-<div id="after-you-enter-a-competition-working-with-ideas" class="section level4">
-<h4>After you enter a competition: Working with ideas</h4>
+<div id="after-you-enter-a-competition-working-with-ideas" class="section level5">
+<h5>After you enter a competition: Working with ideas</h5>
 <ul>
-<li>Organize ideas in some structure</li>
-<li>Select the most important and promising ideas</li>
+<li>Organize ideas in some structure.</li>
+<li>Select the most important and promising ideas.</li>
 <li>Try to understand the reasons why something does/doesn’t work.</li>
 </ul>
+</div>
+<div id="after-you-enter-a-competition-everything-is-a-hyperparameter" class="section level5">
+<h5>After you enter a competition: everything is a hyperparameter</h5>
+<ul>
+<li>Sort all parameters by these principles:
+<ul>
+<li>Importance (tune the params in this order)</li>
+<li>Feasibility (easy to tune to hard to tune)</li>
+<li>Understanding (easy to understand to hard to understand)</li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="dmitry-altukhovs-tips" class="section level4">
+<h4>Dmitry Altukhov’s tips</h4>
+<div id="data-loading" class="section level5">
+<h5>Data loading</h5>
+<ul>
+<li>Do basic preprocessing and convert csv/txt files into hdf5/npy for much faster loading.
+<ul>
+<li>save to hdf5/npy after doing label encoding, etc</li>
+</ul></li>
+<li>Do not forget that by default data is stored in 64-bit arrays (numpy/pandas), most of the time you can safely downcast to 32-bits.</li>
+<li>Large datasets can be processed in chunks (in pandas).
+<ul>
+<li>The entire dataset does not have to be loaded into memory.</li>
+</ul></li>
+</ul>
+</div>
+<div id="performance-evaluation" class="section level5">
+<h5>Performance evaluation</h5>
+<ul>
+<li>Even for medium-size datasets (50000-100000 rows), can validate with simple train/test loop.</li>
+<li>Switch to full cv when it is really needed - when hit performance limit and can only move ahead with marginal improvements.</li>
+<li>Start with fastest models (e.g., LightGBM). Use early stopping. Switch to tuning models, sampling and stacking only after finishing feature engineering.</li>
+</ul>
+</div>
+<div id="fast-and-dirty-always-better" class="section level5">
+<h5>Fast and dirty always better</h5>
+<ul>
+<li>Focus on what’s really important - the data. EDA &amp; domain specific knowledge is more important than creating unnecessary classes and personal frameworks.</li>
+<li>If you feel uncomfortable with given computational resources, just rent a larger server</li>
+</ul>
+</div>
+</div>
+<div id="mikhail-trofimovs-tips" class="section level4">
+<h4>Mikhail Trofimov’s tips</h4>
+<div id="initial-pipeline" class="section level5">
+<h5>Initial pipeline</h5>
+<ul>
+<li>Start with simple (or even primitive) solution.</li>
+<li>The purpose of this is to debug the full pipeline, from reading data to writing submission file.</li>
+<li>Start with random forest rather than GBDT, since RF requires almost no tuning.</li>
+</ul>
+</div>
+<div id="best-practices-from-software-development" class="section level5">
+<h5>Best practices from software development</h5>
+<ul>
+<li>Use good variable names</li>
+<li>Keep your research reproducible
+<ul>
+<li>Fix random seed</li>
+<li>Write down exactly how any features were generated</li>
+<li>Use version control</li>
+</ul></li>
+<li>Reuse code</li>
+</ul>
+</div>
+<div id="read-papers-related-to-the-competition" class="section level5">
+<h5>Read papers related to the competition</h5>
+<ul>
+<li>This can get you ideas about ML-related topics.</li>
+<li>And get familiar with the problem domain.</li>
+</ul>
+</div>
+</div>
+<div id="dmitry-ulyanovs-tips" class="section level4">
+<h4>Dmitry Ulyanov’s tips</h4>
+<div id="my-pipeline" class="section level5">
+<h5>My pipeline</h5>
+<ul>
+<li>Read forums and examine kernels first.
+<ul>
+<li>Someone might have found a bug, and the competition has changed.</li>
+</ul></li>
+<li>Start with EDA and a baseline.
+<ul>
+<li>To make sure the data is loaded correctly.</li>
+<li>To check if validation is stable.</li>
+</ul></li>
+<li>Generate features in bulk.
+<ul>
+<li>At start, create all the features you can make up.</li>
+<li>Evaluate many features at once (not “add one and evaluate”)</li>
+</ul></li>
+<li>Hyperparameters optimization
+<ul>
+<li>First find the params to overfit train dataset.</li>
+<li>And then try to constrain the model.</li>
+</ul></li>
+</ul>
+</div>
+<div id="code-organization-keeping-it-clean" class="section level5">
+<h5>Code organization: keeping it clean</h5>
+<ul>
+<li>Very important to have reproducible results. Keep important code clean.</li>
+<li>Long execution history leads to mistakes. E.g., too many global variables.
+<ul>
+<li>Restart the notebook sometimes.</li>
+</ul></li>
+<li>Use one notebook per submission, and use git.</li>
+<li>Before a submission, restart the kernel (use restart and run all button).</li>
+</ul>
+</div>
+<div id="conde-organization-testval" class="section level5">
+<h5>Conde organization: test/val</h5>
+<ul>
+<li>Convenient way to validate the models that allows to use validation code with minimal changes to retrain a model on the whole dataset.
+<ul>
+<li>Split <em>train.csv</em> into <em>train</em> and <em>val</em> with structure of <em>train.csv</em> and <em>test.csv</em>. ``` train = pd.read_csv(‘data/train.csv’) test = pd.read_csv(‘data/test.csv’)</li>
+</ul>
+<p>from sklearn.model_selection import train_test_split</p>
+<h1 id="train-set-into-new-train-and-validation">train set into new train and validation</h1>
+<p>train_train, train_val = train_test_split(train, random_state = 660)</p>
+<h1 id="save-to-disk">save to disk</h1>
+<p>train_train.to_csv(‘data/val/train.csv’) train_val.to_csv(‘data/val/val.csv’)</p>
+<h1 id="when-validating-set-this-at-the-top-of-notebook">when validating, set this at the top of notebook:</h1>
+<p>train_path = ‘data/val/train.csv’ test_path = ‘data/val/val.csv’</p>
+<h1 id="when-retraining-on-whole-dataset">when retraining on whole dataset:</h1>
+<p>train_path = ‘data/train.csv’ test_path = ‘data/test.csv’ ``` ##### Code organization: use macros</p></li>
+</ul>
+</div>
+<div id="code-organization-custom-library" class="section level5">
+<h5>Code organization: custom library</h5>
+<ul>
+<li>create a custom library with code that always gets repeated.</li>
+</ul>
+</div>
 </div>
 </div>
 </div>

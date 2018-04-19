@@ -1546,7 +1546,8 @@ $$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
 
 ### Practical guide
 
-#### Before you enter a competition
+#### Alexander Guschin's tips
+##### Before you enter a competition
 - Define your goals. What can you get out of the competition?
     - 1. To learn more about an interesting problem.
     - 2. To get acquainted with new software tools.
@@ -1554,11 +1555,102 @@ $$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
         - Check how many submissions top participants have. If top 20 people have over 100 submissions, this can be a sign of leaderboard probing or difficulties in validation, including inconsistency of val and LB scores. On the other hand, if there are people with few submissions on the top, that usually means that there is a non-trivial approach to this competition, or leaks discovered only by a few people.
         - Pay attention to the size of the top teams.
 
-#### After you enter a competition: Working with ideas
-- Organize ideas in some structure
-- Select the most important and promising ideas
+##### After you enter a competition: Working with ideas
+- Organize ideas in some structure.
+- Select the most important and promising ideas.
 - Try to understand the reasons why something does/doesn't work.
 
+##### After you enter a competition: everything is a hyperparameter
+- Sort all parameters by these principles:
+    - Importance (tune the params in this order)
+    - Feasibility (easy to tune to hard to tune)
+    - Understanding (easy to understand to hard to understand)
+
+#### Dmitry Altukhov's tips
+##### Data loading 
+- Do basic preprocessing and convert csv/txt files into hdf5/npy for much faster loading.
+    - save to hdf5/npy after doing label encoding, etc
+- Do not forget that by default data is stored in 64-bit arrays (numpy/pandas), most of the time you can safely downcast to 32-bits.
+- Large datasets can be processed in chunks (in pandas).
+    - The entire dataset does not have to be loaded into memory.
+
+##### Performance evaluation
+- Even for medium-size datasets (50000-100000 rows), can validate with simple train/test loop.
+- Switch to full cv when it is really needed - when hit performance limit and can only move ahead with marginal improvements.
+- Start with fastest models (e.g., LightGBM). Use early stopping. Switch to tuning models, sampling and stacking only after finishing feature engineering.
+
+##### Fast and dirty always better
+- Focus on what's really important - the data. EDA & domain specific knowledge is more important than creating unnecessary classes and personal frameworks.
+- If you feel uncomfortable with given computational resources, just rent a larger server
+
+#### Mikhail Trofimov's tips
+##### Initial pipeline
+- Start with simple (or even primitive) solution.
+- The purpose of this is to debug the full pipeline, from reading data to writing submission file.
+- Start with random forest rather than GBDT, since RF requires almost no tuning.
+
+##### Best practices from software development
+- Use good variable names
+- Keep your research reproducible
+    - Fix random seed
+    - Write down exactly how any features were generated
+    - Use version control
+- Reuse code
+
+##### Read papers related to the competition
+- This can get you ideas about ML-related topics.
+- And get familiar with the problem domain.
+
+#### Dmitry Ulyanov's tips
+
+##### My pipeline
+- Read forums and examine kernels first.
+    - Someone might have found a bug, and the competition has changed.
+- Start with EDA and a baseline.
+    - To make sure the data is loaded correctly.
+    - To check if validation is stable.
+- Generate features in bulk.
+    - At start, create all the features you can make up.
+    - Evaluate many features at once (not "add one and evaluate")
+- Hyperparameters optimization
+    - First find the params to overfit train dataset.
+    - And then try to constrain the model.
+
+##### Code organization: keeping it clean
+- Very important to have reproducible results. Keep important code clean.
+- Long execution history leads to mistakes. E.g., too many global variables.
+    - Restart the notebook sometimes.
+- Use one notebook per submission, and use git.
+- Before a submission, restart the kernel (use restart and run all button).
+
+##### Conde organization: test/val
+- Convenient way to validate the models that allows to use validation code with minimal changes to retrain a model on the whole dataset.
+    - Split *train.csv* into *train* and *val* with structure of *train.csv* and *test.csv*.
+    ```
+    train = pd.read_csv('data/train.csv')
+    test = pd.read_csv('data/test.csv')
+    
+    from sklearn.model_selection import train_test_split
+    
+    # train set into new train and validation
+    train_train, train_val = train_test_split(train, random_state = 660)
+    
+    # save to disk
+    train_train.to_csv('data/val/train.csv')
+    train_val.to_csv('data/val/val.csv')
+    
+    # when validating, set this at the top of notebook:
+    train_path = 'data/val/train.csv'
+    test_path = 'data/val/val.csv'
+    
+    # when retraining on whole dataset:
+    train_path = 'data/train.csv'
+    test_path = 'data/test.csv'
+    ```
+##### Code organization: use macros
+
+##### Code organization: custom library
+- create a custom library with code that always gets repeated.
 
 ## Advanced features II
 
