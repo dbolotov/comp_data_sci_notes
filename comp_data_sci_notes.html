@@ -2645,18 +2645,31 @@ best = fmin(xgb_score, space, algo=tpe.suggest, max_evals=1000)</code></pre>
 <ul>
 <li>Convenient way to validate the models that allows to use validation code with minimal changes to retrain a model on the whole dataset.
 <ul>
-<li>Split <em>train.csv</em> into <em>train</em> and <em>val</em> with structure of <em>train.csv</em> and <em>test.csv</em>. ``` train = pd.read_csv(‘data/train.csv’) test = pd.read_csv(‘data/test.csv’)</li>
+<li><p>Split <em>train.csv</em> into <em>train</em> and <em>val</em> with structure of <em>train.csv</em> and <em>test.csv</em>.</p>
+<pre><code>train = pd.read_csv('data/train.csv')
+test = pd.read_csv('data/test.csv')
+
+from sklearn.model_selection import train_test_split
+
+# train set into new train and validation
+train_train, train_val = train_test_split(train, random_state = 660)
+
+# save to disk
+train_train.to_csv('data/val/train.csv')
+train_val.to_csv('data/val/val.csv')
+
+# when validating, set this at the top of notebook:
+train_path = 'data/val/train.csv'
+test_path = 'data/val/val.csv'
+
+# when retraining on whole dataset:
+train_path = 'data/train.csv'
+test_path = 'data/test.csv'</code></pre></li>
+</ul></li>
 </ul>
-<p>from sklearn.model_selection import train_test_split</p>
-<h1 id="train-set-into-new-train-and-validation">train set into new train and validation</h1>
-<p>train_train, train_val = train_test_split(train, random_state = 660)</p>
-<h1 id="save-to-disk">save to disk</h1>
-<p>train_train.to_csv(‘data/val/train.csv’) train_val.to_csv(‘data/val/val.csv’)</p>
-<h1 id="when-validating-set-this-at-the-top-of-notebook">when validating, set this at the top of notebook:</h1>
-<p>train_path = ‘data/val/train.csv’ test_path = ‘data/val/val.csv’</p>
-<h1 id="when-retraining-on-whole-dataset">when retraining on whole dataset:</h1>
-<p>train_path = ‘data/train.csv’ test_path = ‘data/test.csv’ ``` ##### Code organization: use macros</p></li>
-</ul>
+</div>
+<div id="code-organization-use-macros" class="section level5">
+<h5>Code organization: use macros</h5>
 </div>
 <div id="code-organization-custom-library" class="section level5">
 <h5>Code organization: custom library</h5>
