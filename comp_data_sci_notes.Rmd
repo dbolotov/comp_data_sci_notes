@@ -1542,7 +1542,36 @@ $$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
 - [Optimizing hyperparameters with hyperopt](http://fastml.com/optimizing-hyperparams-with-hyperopt/)
 - [Complete Guide to Parameter Tuning in Gradient Boosting (GBM) in Python](https://www.analyticsvidhya.com/blog/2016/02/complete-guide-parameter-tuning-gradient-boosting-gbm-python/)
         
-        
+## Tips and tricks
+
+### Practical guide
+
+#### Before you enter a competition
+- Define your goals. What can you get out of the competition?
+    - 1. To learn more about an interesting problem.
+    - 2. To get acquainted with new software tools.
+    - 3. To hunt for a medal.
+        - Check how many submissions top participants have. If top 20 people have over 100 submissions, this can be a sign of leaderboard probing or difficulties in validation, including inconsistency of val and LB scores. On the other hand, if there are people with few submissions on the top, that usually means that there is a non-trivial approach to this competition, or leaks discovered only by a few people.
+        - Pay attention to the size of the top teams.
+
+#### After you enter a competition: Working with ideas
+- Organize ideas in some structure
+- Select the most important and promising ideas
+- Try to understand the reasons why something does/doesn't work.
+
+
+## Advanced features II
+
+### Statistics and distance based features
+
+### Matrix factorizations
+
+### Feature interactions
+
+### t-SNE
+
+
+
 * * * 
 
 # Course summary - most important points
