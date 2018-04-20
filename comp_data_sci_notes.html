@@ -2026,10 +2026,29 @@ evallist = [(dtrain, ‘train’), (dvalid, ‘eval’)] evals_result3 = {} mode
 <li>This effect remains valid even for the k-fold scheme, just milder.</li>
 </ul></li>
 <li>In practice, with enough data and using 4-5 folds, mean encodings will work fine with this regularization strategy.</li>
-<li>Application in practice: ``` y_tr = df_tr[‘target’].values #target variable skf = StratifiedKFold(y_tr, 5, shuffle = True, random_state = 123)</li>
+<li><p>Application in practice:</p>
+<pre><code>y_tr = df_tr['target'].values #target variable
+skf = StratifiedKFold(y_tr, 5, shuffle = True, random_state = 123)
+
+for tr_ind, val_ind in skf:
+    X_tr, X_val = df_tr.iloc[tr_ind], df_tr.iloc[val_ind]
+    for col in cols: #iterate through the columns we want to encode
+        means = X_val[col].map(X_tr.groupby(col).target.mean())
+        X_val[col+'_mean_target'] = means
+    train_new.iloc[val_ind] = X_val
+
+prior = df_tr['target'].mean() #global mean
+train_new.fillna(prior, inplace = True) # fill NANs with global mean</code></pre>
+<ul>
+<li><code>df_tr</code>: training data frame</li>
+<li><code>train_new</code>: data frame with encoded features</li>
+<li>In outer <code>for</code> loop, iterate through the stratified folds to separate data into chunks.</li>
+<li><code>X_tr</code> is used to estimate the endcoding, and <code>X_val</code> is used to apply it.</li>
+<li>In inner <code>for</code> loop, iterate through columns and map estimated encodings to to <code>X-val</code> data frame.</li>
+<li>After the outer loop, fill new data frame with the results.</li>
+<li>Some rare categories are present only in a single fold, so we don’t have the data to estimate target mean. Fill these NANs with the global mean.</li>
+</ul></li>
 </ul>
-<p>for tr_ind, val_ind in skf: X_tr, X_val = df_tr.iloc[tr_ind], df_tr.iloc[val_ind] for col in cols: #iterate through the columns we want to encode means = X_val[col].map(X_tr.groupby(col).target.mean()) X_val[col+’_mean_target’] = means train_new.iloc[val_ind] = X_val</p>
-<p>prior = df_tr[‘target’].mean() #global mean train_new.fillna(prior, inplace = True) # fill NANs with global mean ``<code>-</code>df_tr<code>: training data frame     -</code>train_new<code>: data frame with encoded features     - In outer</code>for<code>loop, iterate through the stratified folds to separate data into chunks.     -</code>X_tr<code>is used to estimate the endcoding, and</code>X_val<code>is used to apply it.     - In inner</code>for<code>loop, iterate through columns and map estimated encodings to to</code>X-val` data frame. - After the outer loop, fill new data frame with the results. - Some rare categories are present only in a single fold, so we don’t have the data to estimate target mean. Fill these NANs with the global mean.</p>
 </div>
 <div id="smoothing" class="section level4">
 <h4>Smoothing</h4>

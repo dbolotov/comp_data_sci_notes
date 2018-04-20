@@ -1241,21 +1241,21 @@ $$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
       - The target variable is not explicitly used, but this encoding is biased.
       - This effect remains valid even for the k-fold scheme, just milder.
 - In practice, with enough data and using 4-5 folds, mean encodings will work fine with this regularization strategy.
-- Application in practice: 
-  ```
-  y_tr = df_tr['target'].values #target variable
-  skf = StratifiedKFold(y_tr, 5, shuffle = True, random_state = 123)
-  
-  for tr_ind, val_ind in skf:
-      X_tr, X_val = df_tr.iloc[tr_ind], df_tr.iloc[val_ind]
-      for col in cols: #iterate through the columns we want to encode
-          means = X_val[col].map(X_tr.groupby(col).target.mean())
-          X_val[col+'_mean_target'] = means
-      train_new.iloc[val_ind] = X_val
-  
-  prior = df_tr['target'].mean() #global mean
-  train_new.fillna(prior, inplace = True) # fill NANs with global mean
-  ```
+- Application in practice:
+    ```
+    y_tr = df_tr['target'].values #target variable
+    skf = StratifiedKFold(y_tr, 5, shuffle = True, random_state = 123)
+    
+    for tr_ind, val_ind in skf:
+        X_tr, X_val = df_tr.iloc[tr_ind], df_tr.iloc[val_ind]
+        for col in cols: #iterate through the columns we want to encode
+            means = X_val[col].map(X_tr.groupby(col).target.mean())
+            X_val[col+'_mean_target'] = means
+        train_new.iloc[val_ind] = X_val
+    
+    prior = df_tr['target'].mean() #global mean
+    train_new.fillna(prior, inplace = True) # fill NANs with global mean
+    ```
     - `df_tr`: training data frame
     - `train_new`: data frame with encoded features
     - In outer `for` loop, iterate through the stratified folds to separate data into chunks.
