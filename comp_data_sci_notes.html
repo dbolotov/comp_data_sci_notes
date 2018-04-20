@@ -2698,6 +2698,153 @@ test_path = 'data/test.csv'</code></pre></li>
 </div>
 </div>
 </div>
+<div id="kazanovas-competition-pipeline" class="section level3">
+<h3>KazAnova’s competition pipeline</h3>
+<div id="the-pipeline---summary" class="section level4">
+<h4>The pipeline - summary</h4>
+<ul>
+<li>Understand the problem (1 day)</li>
+<li>Exploratory analysis (1-2 days)
+<ul>
+<li>Define cv strategy</li>
+</ul></li>
+<li>Feature engineering (until last 3-4 days)
+<ul>
+<li>Work individually for 1 week, then read forums/kernels</li>
+</ul></li>
+<li>Modelling (until last 3-4 days)</li>
+<li>Ensembling (last 3-4 days)</li>
+</ul>
+</div>
+<div id="understand-broadly-the-problem" class="section level4">
+<h4>Understand broadly the problem</h4>
+<ul>
+<li>Understand the type of problem (image classification, text, optimization, etc.)</li>
+<li>How BIG is the data?</li>
+<li>Hardware needed (CPUs, GPUs, RAM, Disk space)</li>
+<li>Software needed (TF, sklearn, LightGBM, XGBoost)</li>
+<li>What is the metric used in the competition?
+<ul>
+<li>Find solutions from past similar competitions.</li>
+</ul></li>
+</ul>
+</div>
+<div id="exploratory-data-analysis" class="section level4">
+<h4>Exploratory data analysis</h4>
+<ul>
+<li>Plost histograms of variables. Chack that a feature looks similar between train and test.
+<ul>
+<li>Maybe these features need to be scaled or removed.</li>
+</ul></li>
+<li>Plot features vs target and vs time if available.</li>
+<li>Consider univariate predictability metrics (Information Value, R, AUC).</li>
+<li>Bin numerical features and construct correlation matrices: this helps to notice strange relationships.</li>
+</ul>
+</div>
+<div id="define-a-cross-validation-strategy" class="section level4">
+<h4>Define a cross validation strategy</h4>
+<ul>
+<li>This step is critical. Its success is a good indication for what is going to happen in the competition.
+<ul>
+<li>People have won by just selecting the right way to validate.</li>
+</ul></li>
+<li>If data has time series, do <strong>time-based validation</strong>. Invervals should be similar too (e.g., if test data is 3 months into the future, split the train data into train and val 3 months ahead).</li>
+<li>Check for different entities between train and test. E.g., if train and test sets have different customers, make sure that train and val has different customers. This is <strong>stratified validation</strong>.</li>
+<li>Check that the train and test are completely random. Then do <strong>random validation</strong> (random K-fold).</li>
+<li><strong>Combination of all the above</strong>. E.g., a time-series data with different entities and/or random elements.</li>
+<li>Use the test LB to test: check if improvements on val set lead to improvements on the LB.</li>
+</ul>
+</div>
+<div id="feature-engineering" class="section level4">
+<h4>Feature engineering</h4>
+<ul>
+<li>The type of problem defines the feature engineering. The following is a list of possible features, and example competitions where they were used.
+<ul>
+<li><strong>Image classification</strong>: Scaling, shifting, rotations, CNNs. Previous Data Science Bowls.</li>
+<li><strong>Sound classification</strong>: Fourier, MFCC, Specgrams, scaling. Tensor Flow Speech Recognition.</li>
+<li><strong>Text classification</strong>: TF-IDF, SVD, stemming, spell checking, stop words removal, x-grams. StumbleUpon Evergreen Classification.</li>
+<li><strong>Time series</strong>: Lags, weighted averaging, exponential smoothing. Walmart Recruitment.</li>
+<li><strong>Categorical</strong>: Target enc, freq, one-hot, ordinal, label encoding. Amazon Employee Access.</li>
+<li><strong>Numerical</strong>: Scaling, binning, derivatives, outlier removals, dimensionality reduction. Africa Soil.</li>
+<li><strong>Intercations</strong>: Multiplications, divisions, group-by features, concatenations. Homesite</li>
+<li><strong>Recommenders</strong>: Transactional history, item popularity, frequency of purchase. Acquire Valued Shoppers.</li>
+</ul></li>
+<li>This process can be automated using selection with cross validation.</li>
+<li>Different problems require different feature engineering.</li>
+</ul>
+</div>
+<div id="modeling" class="section level4">
+<h4>Modeling</h4>
+<ul>
+<li><strong>Image classification</strong>: CNNs (Resnet, VGG, densenet, …)</li>
+<li><strong>Sound classification</strong>: CNNs (RNN), LSTM</li>
+<li><strong>Text classification</strong>: GBM, Linear, DL, Naive bayes, KNNs, LibFM, LIBFFM</li>
+<li><strong>Time series</strong>: Autoregressive models, ARIMA, linear, GBMs, DL, LSTMs</li>
+<li><strong>Categorical fatures</strong>: GBMs, Linear models, DL, LibFM, LIBFFM</li>
+<li><strong>Numerical features</strong>: GBMs, Linear models, DL, SVMs</li>
+<li><strong>Interactions</strong>: GBMs, Linear models, DL</li>
+<li><strong>Recommenders</strong>: CF, DL, LibFM, LIBFFM, GBMs</li>
+</ul>
+</div>
+<div id="ensembling" class="section level4">
+<h4>Ensembling</h4>
+<ul>
+<li>All this time, predictions on interval validation and test are saved.
+<ul>
+<li>If collaborating with others, this is the point where everyone passes on their predictions as .csv files.</li>
+</ul></li>
+<li>There are different ways to combine, from averaging to multilayer stacking.</li>
+<li>Small data requires simpler ensemble techniques (like averaging).</li>
+<li>Helps to average a few low-correlated predictions with good scores.</li>
+<li>Bigger data can utilize stacking.</li>
+<li>The stacking process repeats the modeling process.
+<ul>
+<li>Can do feature engineering, create and remove features for stacked models.</li>
+</ul></li>
+</ul>
+</div>
+<div id="tips-on-collaboration" class="section level4">
+<h4>Tips on collaboration</h4>
+<ul>
+<li>It makes things more fun.</li>
+<li>You learn more.</li>
+<li>You score better.
+<ul>
+<li>Can cover more ground.</li>
+<li>Every participant has a different angle, leading to more through solutions.</li>
+</ul></li>
+<li>Start collaborating after getting some experience (2-3 competitions) to understand the dynamics.</li>
+<li>Start with people around your “rank”, and grow together.</li>
+<li>Look for people that are likely to do different things well or that specialize in certain areas.</li>
+</ul>
+</div>
+<div id="selecting-final-submissions" class="section level4">
+<h4>Selecting final submissions</h4>
+<ul>
+<li>Normally select the best submission locally and best on leader board.</li>
+<li>Monitor correlations. If correlations are too high and submissions exist with high scores but significantly lower correlations, they could be considered too.</li>
+</ul>
+</div>
+<div id="final-tips" class="section level4">
+<h4>Final tips</h4>
+<ul>
+<li>In these challenges you never lose. You may not win prize money, but you always gain in terms of knowledge, experience, meeting/collaborating with talented people in the field, boost your CV.</li>
+<li>Coffee is kind of a must when you do this!</li>
+<li>See it like a game… you have some tools, or “weapons”, you can get a score and you try to beat the “bad guys” score!</li>
+<li>Take a break often to rest your mind - do some physical exercise as it is unhealthy sitting in a chair for many hours.</li>
+<li>The kaggle community may be the most kind, helpful community.</li>
+<li>After the competition, lok for people sharing approaches.</li>
+<li>Create a notebook with useful methods and update it.</li>
+</ul>
+</div>
+</div>
+<div id="additional-materials-and-links-1" class="section level3">
+<h3>Additional materials and links</h3>
+<ul>
+<li><a href="https://github.com/Far0n/kaggletils">Far0n’s framework for Kaggle competitions “kaggletils”</a></li>
+<li><a href="https://www.dataquest.io/blog/jupyter-notebook-tips-tricks-shortcuts/">28 Jupyter Notebook tips, tricks and shortcuts</a></li>
+</ul>
+</div>
 </div>
 <div id="advanced-features-ii" class="section level2">
 <h2>Advanced features II</h2>

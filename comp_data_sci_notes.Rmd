@@ -1653,6 +1653,103 @@ $$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
 ##### Code organization: custom library
 - create a custom library with code that always gets repeated.
 
+### KazAnova's competition pipeline
+#### The pipeline - summary
+- Understand the problem (1 day)
+- Exploratory analysis (1-2 days)
+    - Define cv strategy
+- Feature engineering (until last 3-4 days)
+    - Work individually for 1 week, then read forums/kernels
+- Modelling (until last 3-4 days)
+- Ensembling (last 3-4 days)
+
+#### Understand broadly the problem
+- Understand the type of problem (image classification, text, optimization, etc.)
+- How BIG is the data?
+- Hardware needed (CPUs, GPUs, RAM, Disk space)
+- Software needed (TF, sklearn, LightGBM, XGBoost)
+- What is the metric used in the competition?
+    - Find solutions from past similar competitions.
+
+#### Exploratory data analysis
+- Plost histograms of variables. Chack that a feature looks similar between train and test.
+    - Maybe these features need to be scaled or removed.
+- Plot features vs target and vs time if available.
+- Consider univariate predictability metrics (Information Value, R, AUC).
+- Bin numerical features and construct correlation matrices: this helps to notice strange relationships.
+
+#### Define a cross validation strategy
+- This step is critical. Its success is a good indication for what is going to happen in the competition.
+    - People have won by just selecting the right way to validate.
+- If data has time series, do **time-based validation**. Invervals should be similar too (e.g., if test data is 3 months into the future, split the train data into train and val 3 months ahead).
+- Check for different entities between train and test. E.g., if train and test sets have different customers, make sure that train and val has different customers. This is **stratified validation**.
+- Check that the train and test are completely random. Then do **random validation** (random K-fold).
+- **Combination of all the above**. E.g., a time-series data with different entities and/or random elements.
+- Use the test LB to test: check if improvements on val set lead to improvements on the LB.
+
+#### Feature engineering
+- The type of problem defines the feature engineering. The following is a list of possible features, and example competitions where they were used.
+    - **Image classification**: Scaling, shifting, rotations, CNNs. Previous Data Science Bowls.
+    - **Sound classification**: Fourier, MFCC, Specgrams, scaling. Tensor Flow Speech Recognition.
+    - **Text classification**: TF-IDF, SVD, stemming, spell checking, stop words removal, x-grams. StumbleUpon Evergreen Classification.
+    - **Time series**: Lags, weighted averaging, exponential smoothing. Walmart Recruitment.
+    - **Categorical**: Target enc, freq, one-hot, ordinal, label encoding. Amazon Employee Access.
+    - **Numerical**: Scaling, binning, derivatives, outlier removals, dimensionality reduction. Africa Soil.
+    - **Intercations**: Multiplications, divisions, group-by features, concatenations. Homesite
+    - **Recommenders**: Transactional history, item popularity, frequency of purchase. Acquire Valued Shoppers.
+- This process can be automated using selection with cross validation.
+- Different problems require different feature engineering.
+
+#### Modeling
+- **Image classification**: CNNs (Resnet, VGG, densenet, ...)
+- **Sound classification**: CNNs (RNN), LSTM
+- **Text classification**: GBM, Linear, DL, Naive bayes, KNNs, LibFM, LIBFFM
+- **Time series**: Autoregressive models, ARIMA, linear, GBMs, DL, LSTMs
+- **Categorical fatures**:  GBMs, Linear models, DL, LibFM, LIBFFM
+- **Numerical features**: GBMs, Linear models, DL, SVMs
+- **Interactions**: GBMs, Linear models, DL
+- **Recommenders**: CF, DL, LibFM, LIBFFM, GBMs
+
+#### Ensembling
+- All this time, predictions on interval validation and test are saved.
+    - If collaborating with others, this is the point where everyone passes on their predictions as .csv files.
+- There are different ways to combine, from averaging to multilayer stacking.
+- Small data requires simpler ensemble techniques (like averaging).
+- Helps to average a few low-correlated predictions with good scores.
+- Bigger data can utilize stacking.
+- The stacking process repeats the modeling process.
+    - Can do feature engineering, create and remove features for stacked models.
+
+#### Tips on collaboration
+- It makes things more fun.
+- You learn more.
+- You score better.
+    - Can cover more ground.
+    - Every participant has a different angle, leading to more through solutions.
+- Start collaborating after getting some experience (2-3 competitions) to understand the dynamics.
+- Start with people around your "rank", and grow together.
+- Look for people that are likely to do different things well or that specialize in certain areas.
+
+#### Selecting final submissions
+- Normally select the best submission locally and best on leader board.
+- Monitor correlations. If correlations are too high and submissions exist with high scores but significantly lower correlations, they could be considered too.
+
+#### Final tips
+- In these challenges you never lose. You may not win prize money, but you always gain in terms of knowledge, experience, meeting/collaborating with talented people in the field, boost your CV.
+- Coffee is kind of a must when you do this!
+- See it like a game... you have some tools, or "weapons", you can get a score and you try to beat the "bad guys" score!
+- Take a break often to rest your mind - do some physical exercise as it is unhealthy sitting in a chair for many hours.
+- The kaggle community may be the most kind, helpful community.
+- After the competition, lok for people sharing approaches.
+- Create a notebook with useful methods and update it.
+
+### Additional materials and links
+- [Far0n's framework for Kaggle competitions "kaggletils"](https://github.com/Far0n/kaggletils)
+- [28 Jupyter Notebook tips, tricks and shortcuts](https://www.dataquest.io/blog/jupyter-notebook-tips-tricks-shortcuts/)
+
+
+
+
 ## Advanced features II
 
 ### Statistics and distance based features
