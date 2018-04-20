@@ -125,7 +125,7 @@ $(document).ready(function () {
 <li><a href="#week-4">Week 4</a><ul>
 <li><a href="#hyperparameter-tuning">Hyperparameter tuning</a></li>
 <li><a href="#tips-and-tricks">Tips and tricks</a></li>
-<li><a href="#advanced-features-ii">Advanced features II</a></li>
+<li><a href="#advanced-features-ii">Advanced Features II</a></li>
 </ul></li>
 <li><a href="#course-summary---most-important-points">Course summary - most important points</a></li>
 </ul>
@@ -2847,19 +2847,203 @@ test_path = 'data/test.csv'</code></pre></li>
 </div>
 </div>
 <div id="advanced-features-ii" class="section level2">
-<h2>Advanced features II</h2>
-<div id="statistics-and-distance-based-features" class="section level3">
-<h3>Statistics and distance based features</h3>
+<h2>Advanced Features II</h2>
+<div id="statistics-and-distance-based-fatures" class="section level3">
+<h3>Statistics and distance based fatures</h3>
+<ul>
+<li>Example: data for CTR task, consisting of User_id, Page_id, Ad_price, and Ad_position.</li>
+<li>The most straightforward way to solve this problem is to label-encode Ad_position and fit a classifier. This model would be very good, and take into account hidden relations between variables. But no matter how good it is, it still treats all the data points independently. This is where feature engineering can be applied.</li>
+<li>We can imply that an ad with the lowest price on the page will catch most of the attention, and the rest of the ads won’t be very attractive. It is easy to calculate the features relevant to such an implication: we can add lowest and highest ad prices for every user and page pair, and add position of the ad with the lowest price.</li>
+<li><p>Example implementation with <code>pandas</code>: ``` gb = df.groupby([‘user_id’,‘page_id’],as_index=False).agg({‘ad_price’:{‘max_price’:np.max, ‘min_price’:np.min}}) gb.columns = [‘user_id’,‘page_id’,‘min_price’,‘max_price’]</p>
+df = pd.merge(df,gb,how=‘left’,on=[‘user_id’,‘page_id’]) ```</li>
+<li>More useful features:
+<ul>
+<li>How many pages user visited total and during session</li>
+<li>Standard deviation of prices</li>
+<li>Most visited page</li>
+<li>Many, many more</li>
+</ul></li>
+<li><p>The main idea is to introduce new information.</p></li>
+</ul>
+</div>
+<div id="neighbors" class="section level3">
+<h3>Neighbors</h3>
+<ul>
+<li>This techique is useful if there are no features to use <code>groupby</code> on.</li>
+<li>Replace the grouping operation with finding nearest neighbors.</li>
+<li>This approach is more flexible, but much harder to implement.</li>
+<li>The most natural example of neighborhood analysis arises from property pricing.
+<ul>
+<li>Regular features would be floor space, number of rooms, presence of a bus stop, etc.</li>
+<li>But to create a really good model, use the following features:
+<ul>
+<li>Number of houses in 500m, 1000m radius.</li>
+<li>Average price per square meter in 500m, 1000m radius.</li>
+<li>Number of schools/supermarkets/parking lots in 500m, 1000m.</li>
+<li>Distance to closest subway station, gyms, etc.</li>
+</ul></li>
+</ul></li>
+<li>Apply this method to abstract or anonymized feature spaces.</li>
+<li>Example from SpringLeaf competition:
+<ul>
+<li>Mean code all variables. This creates a homogeneous feature space, so no need to worry about scaling and importance of each particular feature.</li>
+<li>For every point, find 2000 nearest neighbors using Bray-Curtis metric: <span class="math inline">\(\sum|u_i-v_i|/\sum|u_i+v_i|\)</span>.</li>
+<li>Calculate various features from those 2000 neighbors:
+<ul>
+<li>Mean target of nearest 5, 10, 15, 500, 2000 neighbors</li>
+<li>Mean distance to 10 closest neighbors</li>
+<li>Mean distance to 10 closest neighbors with target 1, target 0</li>
+</ul></li>
+</ul></li>
+</ul>
 </div>
 <div id="matrix-factorizations" class="section level3">
 <h3>Matrix factorizations</h3>
+<div id="what-is-matrix-factorization" class="section level4">
+<h4>What is matrix factorization?</h4>
+<ul>
+<li>Example: movie recommendation based on user and movie data and user ratings.</li>
+<li>Create a user-item matrix with each row corresponding to a user and each column corresponding to a movie. Each cell (i,j) stores a rating from user i for item j.</li>
+<li>Assume that ith user has features <span class="math inline">\(U_i\)</span> and jth movie has features <span class="math inline">\(M_i\)</span>. <span class="math inline">\(R_{ij}\)</span> is the scalar product of these features per user rating. We can apply matrix factorization for learning the features for items and users.</li>
+<li>Sometimes, features can have an interpretation. E.g., the first feature in item can be a measure of movie sadness. Generally, consider these as abstract features which we can use to encode a user as we did before, with label encoding or one-hot encoding.</li>
+<li>Specifically, our assumption about scalar product is the following: If we represent all attributes of users and items as matrices, their matrix product will be very close to the matrix with ratings. In other words, we try to find matrices <span class="math inline">\(U\)</span> and <span class="math inline">\(M\)</span> such that their product gives the matrix <span class="math inline">\(R\)</span>. That is why this approach is called matrix factorization or matrix decomposition.</li>
+</ul>
+</div>
+<div id="documentsexample" class="section level4">
+<h4>Documentsexample</h4>
+<ul>
+<li>Sometimes, we need only features corresponding to rows.</li>
+<li>Example: text processing. Extract bag of words features, and each document is described by a large sparse vector (row with 0 and 1 for each word).</li>
+<li>If we do MF over these sparse features, we will get a representation for docs and a representation for terms. Now, every document is described by a small, dense vector. These are now features to be used in model training.</li>
+<li>This approach is often called <em>dimensionality reduction</em>. It is an efficient way to reduce the size of the feature matrix and extract real-valued features from one-hot encoded categorical ones.</li>
+<li>In competitions, we often have different options for pre-processing: vanilla BOW, BOW+TFIDF, BOW(bigrams), etc. Using MF, we can extract features from all these matrices. Since the resulting matrices will be small, we can easily join them, and use them together with tree-based models.</li>
+</ul>
+</div>
+<div id="notes-about-matrix-factorization" class="section level4">
+<h4>Notes about matrix factorization</h4>
+<ul>
+<li>We are not constrained to use the whole matrix: can apply MF to a subset of columns, and leave the others as-is.</li>
+<li>Besides dimension reduction, can use MF to provide another representation of the same data. This is especially useful for ensembles.</li>
+<li>MF is a lossy transformation. Its efficiency depends on the particular task and the number of latent factors (usually 5-100). The number of latent factors is a hyperparameter that should be tuned.</li>
+</ul>
+</div>
+<div id="implementation" class="section level4">
+<h4>Implementation</h4>
+<ul>
+<li>There are several MF methods in sklearn.</li>
+<li>SVD and PCA: standard tools for MF</li>
+<li>TruncatedSVD: works with sparse matrices</li>
+<li>Non-negative Matrix Factorization (NMF): ensures that all latent factors are non-negative; good for counts-like data.
+<ul>
+<li>NMF has an iteresting property - it transforms data in a way that makes data more suitable for decision trees. NMF-transofmred data forms lines parallel to axes.</li>
+</ul></li>
+<li>MF is similar in spirit to linear models. Therefore, can use the same transformation tricks. E.g., apply MF to logarithmically-transformed data.</li>
+</ul>
+</div>
+<div id="gotchas" class="section level4">
+<h4>Gotchas</h4>
+<ul>
+<li>MF is a trainable transformation and has its own params. Be careful and use the same transformation for all parts of your dataset.</li>
+<li>Wrong way: <code>pca = PCA(n_components=5) X_train_pca = pca.fit_transform(X_train) X_test_pca = pca.fit_transform(X_test)</code></li>
+<li>Right way: <code>X_all = np.concatenate([X_train,X_test]) pca.fit(X_all) X_train_pca = pca.fit_transform(X_train) X_test_pca = pca.fit_transform(X_test)</code></li>
+</ul>
+</div>
+<div id="summary-3" class="section level4">
+<h4>Summary</h4>
+<ul>
+<li>MF is a very general approach for dimensionality reduction and feature extraction.</li>
+<li>Can be used for transforming categorical features into real-valued.</li>
+<li>Many tricks suitable for linear models can be useful for MF.</li>
+</ul>
+</div>
 </div>
 <div id="feature-interactions" class="section level3">
 <h3>Feature interactions</h3>
+<ul>
+<li>Example: the best advertisement banner to display on a website. Data has category_ad (what the ad is showing), category_site (the kind of site that ad is shown on), and is_clicked.</li>
+<li>The combination of category_ad and category_site is really important.</li>
+<li>We can explicitly construct this combination in a new feature, ad_site.
+<ul>
+<li>E.g., “auto_part” and “game_news” becomes “auto_part|game_news”.</li>
+<li>There are two ways of constructing this new feature:
+<ul>
+<li><ol style="list-style-type: decimal">
+<li>Concatenate the features f1 and f2 to create a new categorical feature f_join, then apply one-hot encoding to f_join.</li>
+</ol></li>
+<li><ol start="2" style="list-style-type: decimal">
+<li>Apply one-hot encoding to features f1 and f2. Then, construct new metrics by multiplying each column from f1 encoded to f2 encoded.</li>
+</ol></li>
+<li>Both methods result in practically the same feature representation.</li>
+</ul></li>
+</ul></li>
+<li>Similar ideas can be applied to real-valued features. Use any function that takes two arguments: product, sum, diff, division.</li>
+<li>These transformations significantly enlarge feature space and make learning easier. But it makes overfitting easier too.</li>
+<li>For tree-based models, it is difficult to extract such dependencies. The above transformations are very effective in this case.</li>
+</ul>
+</div>
+<div id="practical-notes" class="section level3">
+<h3>Practical notes</h3>
+<ul>
+<li>There are a lot of possible pairwise interactions - N*N for N features. This is even more severe if several types of interactions are used.</li>
+<li>To moderate this, use dimensionality reduction or feature selection. Recommendation: use feature selection, since not all but only a few interactions often achieve the same quality as all features.</li>
+</ul>
+</div>
+<div id="example-of-interaction-generation-pipeline" class="section level3">
+<h3>Example of interaction generation pipeline</h3>
+<ul>
+<li>Construct all pairwise feature interactions for each type (sum, diff, etc.).</li>
+<li>Fit random forests over each set of features.</li>
+<li>Select a few most important features for each type based on the feature importance from RF.</li>
+<li>Add these features to the original data.</li>
+<li>Use this new dataset as input to a learning algorithm.</li>
+</ul>
+</div>
+<div id="interactions-order" class="section level3">
+<h3>Interactions’ order</h3>
+<ul>
+<li>The pairwise approach can be generalized to higher orders.</li>
+<li>The number of features grows rapidly, and high-order interactions are constructed semi-manually.</li>
+</ul>
+</div>
+<div id="extracting-features-from-decision-trees" class="section level3">
+<h3>Extracting features from decision trees</h3>
+<ul>
+<li>This method is used to construct categorical features from decision trees, and is a powerful way to extract high-order interactions.</li>
+<li>Each leaf is mapped into a binary feature. The index of the object’s leaf can be used as a value for a new categorical feature.</li>
+<li>If a tree ensemble is used, then this can be applied to each of the trees.</li>
+<li><p>Implementation in sklearn:</p>
+<pre><code>  tree_model.apply() # take as input the feature matrix, and return corresponding leaf indices</code></pre></li>
+<li><p>Implementation in xgboost:</p>
+<pre><code>  booster.predict(pred_leaf=True)</code></pre></li>
+</ul>
 </div>
 <div id="t-sne" class="section level3">
 <h3>t-SNE</h3>
+<ul>
+<li>This is an example of non-linear dimensionality reduction, generally called manifold learning.</li>
+<li>t-SNE tries to projects points from a high-dimensional space into smaller dimensions such that the distances between points are approximately preserved.</li>
+<li>Example: MNIST dataset. Can project points from 28x28-D space onto 2-D space. This projection forms explicit clusters that correspond to the target class. Moreover, neighboring clusters correspond to visually similar numbers.</li>
+<li>If data has explicit structure, it is likely to be reflected on t-SNE plots, so t-SNE is widely used in EDA.</li>
+<li>t-SNE results strongly depend on the parameters, and interpretation of the results is not a simple task.
+<ul>
+<li>A bad choice of hyperparams (perplexity) may lead to bad t-SNE results.</li>
+<li>One cannot infer the size of the original clusters using the size of projected clusters. Same for distance between clusters.</li>
+</ul></li>
+<li>t-SNE can be used to extract new features from data, in addition to EDA. Concatenate the new features with the original data.</li>
+</ul>
+<div id="practical-notes-1" class="section level4">
+<h4>Practical notes</h4>
+<ul>
+<li>Result heavily depends on hyperparams (perplexity).
+<ul>
+<li>It is good practice to use several projections with different perplexities (5-100).</li>
+</ul></li>
+<li>Due to the stochastic nature, t-SNE provides different projections even for the same data/hyperparams. Train and test sets should be projected together.</li>
+<li>t-SNE runs for a long time with a big number of features. It is common to do dimensionality reduction before projection (e.g., reduce 500 to 100).</li>
+<li>sklearn has an implementation of t-SNE, but the standalone python package ‘tsne’ is faster.</li>
+</ul>
 <hr />
+</div>
 </div>
 </div>
 </div>
