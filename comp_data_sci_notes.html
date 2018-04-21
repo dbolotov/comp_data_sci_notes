@@ -126,6 +126,7 @@ $(document).ready(function () {
 <li><a href="#hyperparameter-tuning">Hyperparameter tuning</a></li>
 <li><a href="#tips-and-tricks">Tips and tricks</a></li>
 <li><a href="#advanced-features-ii">Advanced Features II</a></li>
+<li><a href="#ensembling-1">Ensembling</a></li>
 </ul></li>
 <li><a href="#course-summary---most-important-points">Course summary - most important points</a></li>
 </ul>
@@ -3042,8 +3043,454 @@ df = pd.merge(df,gb,how=‘left’,on=[‘user_id’,‘page_id’]) ```</li>
 <li>t-SNE runs for a long time with a big number of features. It is common to do dimensionality reduction before projection (e.g., reduce 500 to 100).</li>
 <li>sklearn has an implementation of t-SNE, but the standalone python package ‘tsne’ is faster.</li>
 </ul>
-<hr />
 </div>
+</div>
+<div id="additional-materials-and-links-2" class="section level3">
+<h3>Additional materials and links</h3>
+<div id="matrix-factorization" class="section level4">
+<h4>Matrix Factorization</h4>
+<ul>
+<li><a href="http://scikit-learn.org/stable/modules/decomposition.html">Overview of Matrix Decomposition methods (sklearn)</a></li>
+</ul>
+</div>
+<div id="t-sne-1" class="section level4">
+<h4>t-SNE</h4>
+<ul>
+<li><a href="https://github.com/DmitryUlyanov/Multicore-TSNE">Multicore t-SNE implementation</a></li>
+<li><a href="http://scikit-learn.org/stable/auto_examples/manifold/plot_compare_methods.html">Comparison of Manifold Learning methods (sklearn)</a></li>
+<li><a href="https://distill.pub/2016/misread-tsne/">How to Use t-SNE Effectively (distill.pub blog)</a></li>
+<li><a href="https://lvdmaaten.github.io/tsne/">tSNE homepage (Laurens van der Maaten)</a></li>
+<li><a href="http://scikit-learn.org/stable/auto_examples/manifold/plot_t_sne_perplexity.html#sphx-glr-auto-examples-manifold-plot-t-sne-perplexity-py">Example: tSNE with different perplexities (sklearn)</a></li>
+</ul>
+</div>
+<div id="interactions" class="section level4">
+<h4>Interactions</h4>
+<ul>
+<li><a href="https://research.fb.com/publications/practical-lessons-from-predicting-clicks-on-ads-at-facebook/">Facebook Research’s paper about extracting categorical features from trees</a></li>
+<li><a href="http://scikit-learn.org/stable/auto_examples/ensemble/plot_feature_transformation.html">Example: Feature transformations with ensembles of trees (sklearn)</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div id="ensembling-1" class="section level2">
+<h2>Ensembling</h2>
+<div id="introduction-to-ensemble-methods" class="section level3">
+<h3>Introduction to ensemble methods</h3>
+<ul>
+<li>Endemble modeling is combining different ML models to get a better prediction.</li>
+<li>The methods discussed in this section are encountered often in competitions.</li>
+</ul>
+</div>
+<div id="averaging" class="section level3">
+<h3>Averaging</h3>
+<ul>
+<li>Example: two models that predict age. Plotting true age vs predicted age, we see that model 1 has <span class="math inline">\(R^2\)</span> = 0.9157, but doesn’t do well past the age of 50. When age &gt; 50, the average error is higher. Model 2 has <span class="math inline">\(R^2\)</span>=0.9112, but does well when age &gt; 50, and worse when age &lt; 50.</li>
+</ul>
+<div id="simple-average" class="section level4">
+<h4>Simple average</h4>
+<ul>
+<li>Combining these two models with simple averaging results in <span class="math inline">\(R^2\)</span> = 0.9544.
+<ul>
+<li>Simple average: (model 1 + model 2)/2</li>
+<li>This model does worse than the individual models on the areas where each individual model did really well, but overall has a lower error.</li>
+</ul></li>
+</ul>
+</div>
+<div id="weighted-average" class="section level4">
+<h4>Weighted average</h4>
+<ul>
+<li>Weighted average: (model1 * 0.7 + model2 * 0.3)</li>
+<li>The resulting model has <span class="math inline">\(R^2\)</span> = 0.9478. The two individual models have similar predictive power, and it does not make sense to rely more on one than the other.</li>
+</ul>
+</div>
+<div id="conditional-average" class="section level4">
+<h4>Conditional average</h4>
+<ul>
+<li>Ideally, we would leverage the best parts of each model.</li>
+<li>In this example, the best condition would be to use model 1 when age &lt; 50, and otherwise use model 2.</li>
+<li>Later sections describe ensemble methods that are very good at finding these conditions.</li>
+</ul>
+</div>
+</div>
+<div id="bagging" class="section level3">
+<h3>Bagging</h3>
+<ul>
+<li>Bagging is averaging slightly different versions of the same model as a means to improve accuracy.</li>
+<li>Random forests are an example of bagging.</li>
+</ul>
+<div id="why-use-bagging" class="section level4">
+<h4>Why use bagging?</h4>
+<ul>
+<li>Generally there are 2 main sources of errors in modeling:
+<ul>
+<li><ol style="list-style-type: decimal">
+<li>Errors due to <strong>Bias</strong> (underfitting)</li>
+</ol></li>
+<li><ol start="2" style="list-style-type: decimal">
+<li>Errors due to <strong>Variance</strong> (overfitting)</li>
+</ol></li>
+</ul></li>
+<li>Models move from high bias &amp; low variance to low bias &amp; high variance as model complexity increases.</li>
+<li>Using slightly different models ensures that model does not reach very high variance and is more generalizable.</li>
+</ul>
+</div>
+<div id="bagging-parameters" class="section level4">
+<h4>Bagging parameters</h4>
+<ul>
+<li>Random seed.</li>
+<li>Row (sub) sampling or bootstrapping.</li>
+<li>Shuffling - some algorithms are sensitive to the data order.</li>
+<li>Column (sub) sampling.</li>
+<li>Model-specific parameters.
+<ul>
+<li>E.g., slightly different regularization parameters in linear models.</li>
+</ul></li>
+<li>Number of models (or bags).</li>
+<li>Recommendation: start with 10 models.</li>
+<li>(Optionally) parallelism: in bagging, the models are independent, so can build independently.</li>
+</ul>
+</div>
+<div id="implementations" class="section level4">
+<h4>Implementations</h4>
+<ul>
+<li><code>BaggingClassifier</code> and <code>BaggingRegressor</code> from sklearn</li>
+<li><p>Example code:</p>
+<pre><code># train is the training data
+# test is the test data
+# y is the target variable
+model = RandomForestRegressor()
+bags = 10
+seed = 1
+# create array object to hold bagged predictions
+bagged_prediction = np.zeros(test.shape[0])
+# loop for as many times as we want bags
+for n in range(0,bags):
+  model.set_params(random_state=seed+n) # update seed
+  model.fit(train,y) # fit model
+  preds = model.predict(test) # predict on test data
+  bagged_prediction += preds # add predictions to bagged prediction
+# take average of predictions
+bagged_prediction /= bags</code></pre></li>
+</ul>
+</div>
+</div>
+<div id="boosting" class="section level3">
+<h3>Boosting</h3>
+<ul>
+<li>A form of weighted averaging models where each model is built sequentially via taking into account the past model performance.</li>
+<li>Unlike in bagging, models are not independent.</li>
+<li>There are two main types of boosting: weight-based and residual-based.</li>
+</ul>
+<div id="weight-based-boosting" class="section level4">
+<h4>Weight-based boosting</h4>
+<ul>
+<li>Example: dataset with features x0, … x3 and binary target y.
+<ul>
+<li>Build a classifier and generate predictions (probabilities).</li>
+<li>Compute absolute error for each prediction. E.g., if y=1 and pred=0.8, then abs.error=0.2.</li>
+<li>Create a new column with a weight = 1 + abs.error.
+<ul>
+<li>There are different ways to calculate the weight.</li>
+</ul></li>
+<li>Fit a new model, but weigh each row by the calculated weight.
+<ul>
+<li>This can be interpreted as the number of times a certain row appears in the data.</li>
+</ul></li>
+<li>Repeat the process, calculate new weights, etc.</li>
+</ul></li>
+<li>Parameters:
+<ul>
+<li>Learning rate (or shrinkage or eta).
+<ul>
+<li>predictionN = pred0*eta + pred1*eta + … + predN*eta</li>
+<li>Ensures that not one model is dominating, and controls overfitting.</li>
+</ul></li>
+<li>Number of estimators.
+<ul>
+<li>Has an inverse relationship with the learning rate. Larger number of estimators should have a smaller learning rate.</li>
+<li>Tune this parameter with cross-validation.</li>
+<li>Practical recommendation: start with 100 estimators, and try to find the optimal learning rate. Then, if increasing the number of estimators, decrease LR by the same factor. E.g., if n_estimators is now 200, learning rate should be divided by 2.</li>
+</ul></li>
+<li>Input model: can be any model that accepts weights.</li>
+<li>Sub boosting type:
+<ul>
+<li>AdaBoost - Good implementation in sklearn.</li>
+<li>LogitBoost - Good implementation in Weka. Used for logistic regression.</li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+<div id="residual-based-boosting" class="section level4">
+<h4>Residual-based boosting</h4>
+<ul>
+<li>Very successful and dominant type of algorithm in competitions.</li>
+<li>Example: dataset with features x0, … x3 and binary target y, as before.
+<ul>
+<li>As before, fit model and generate predictions.</li>
+<li>Calculate error, but not absolute error.</li>
+<li>The error becomes the new target variable y.</li>
+<li>Use the same original features to predict the new target variable.</li>
+<li>To generate predictions for the original y, sum the predictions on original y and the residual y.</li>
+</ul></li>
+<li>Parameters:</li>
+<li>Learning rate (or shrinkage or eta).
+<ul>
+<li>PredictionN = pred0 + pred1*eta + … + predN*eta</li>
+<li>Controls how the original prediction (pred0) moves towards the true y value.</li>
+<li>A good way to prevent overfitting.</li>
+</ul></li>
+<li>Number of estimators: same as for weighter averaging. More is better, but offset with LR.</li>
+<li>Row (sub) sampling &amp; column (sub) sampling.
+<ul>
+<li>These can also be used with weight-based boosting, but are used more frequently with residual-based.</li>
+</ul></li>
+<li>Input model: works really well with decision trees, but theoretically can be other models.</li>
+<li>Sub boosting type:
+<ul>
+<li>Fully gradient based: explained above in this section.</li>
+<li>Dart: imposes a dropout mechanism to control the contribution of the trees. Concept derived from deep learning. Randomly exclude trees when generating new trees. Works as regularization.</li>
+</ul></li>
+</ul>
+</div>
+<div id="residual-based-implementations" class="section level4">
+<h4>Residual-based implementations</h4>
+<ul>
+<li>XGBoost</li>
+<li>LightGBM</li>
+<li>H2O’s GBM: can handle categorical variables out-of-the-box. Comes with grid search.</li>
+<li>Catboost: comes with a strong initial set of parameters, and handles categorical variables out-of-the-box.</li>
+<li>GBM (sklearn): can put any sklearn estimator as the base.</li>
+</ul>
+</div>
+</div>
+<div id="stacking" class="section level3">
+<h3>Stacking</h3>
+<ul>
+<li>Very popular form of ensembling. Most competitions use a form of stacking in the end.</li>
+<li>Means making predictions using a number of models on a hold-out set to create a new dataset, and then using a different (Meta) model to train on this predictions-dataset.</li>
+<li>The meta model does not use the original input data.</li>
+<li>Introduced by Wolpert in 1992.</li>
+</ul>
+<div id="stacking-methodology" class="section level4">
+<h4>Stacking methodology</h4>
+<ul>
+<li><ol style="list-style-type: decimal">
+<li>Split the train set into two disjoint sets.</li>
+</ol></li>
+<li><ol start="2" style="list-style-type: decimal">
+<li>Train several base learners on the first part.</li>
+</ol></li>
+<li><ol start="3" style="list-style-type: decimal">
+<li>Make predictions with the base learners on the second (validation) part.</li>
+</ol></li>
+<li><ol start="4" style="list-style-type: decimal">
+<li>Use predictions from (3) as the inputs to train a higher-level learner (metamodel).</li>
+</ol></li>
+</ul>
+</div>
+<div id="another-explanation" class="section level4">
+<h4>Another explanation</h4>
+<ul>
+<li>Consider datasets A, B, and C. Target variable (y) is known for A &amp; B.</li>
+<li>A is the training data set, B is validation, C is the test set for final predictions.</li>
+<li>Train algorithm 0 on A, then make predictions on B and C at the same time. Save these predictions as columns of new datasets B1 and C1 (one column for data B, and one column for data C).</li>
+<li>Train algorithm 1 on A, make predictions on B and C, and stack with previous columns in B1 and B2.</li>
+<li>Repeat for algorithm 2.</li>
+<li>This results in dataset B1 having 3 feature columns and the original target y, and dataset C1 having 3 feature columns (and no predictions, since they are unknown).</li>
+<li>Train algorithm 3 (the meta-learner) on B1, and make predictions on C1.</li>
+</ul>
+</div>
+<div id="stacking-example-in-python" class="section level4">
+<h4>Stacking example in python</h4>
+<pre><code>from sklearn.ensemble import RandomForestRegressor # import model
+from sklearn.linear_model import LinearRegression # import model
+import numpy as np
+from sklearn.model_selection import train_test_split
+
+# train is the training data
+# y is the target variable for the train data
+# test is the test data
+
+# split train data in 2 parts, training and validation.
+training,valid,ytraining,yvalid = train_test_split(train,y,test_size=0.5)
+# specify models
+model1 = RandomForestRegressor()
+model2= LinearRegression()
+
+# fit models
+model1.fit(training,ytraining)
+model2.fit(training,ytraining)
+
+# make predictions for validation
+preds1 = model1.predict(valid)
+preds2 = model2.predict(valid)
+
+# make predictions for test data
+test_preds1 = model1.predict(test)
+test_preds2 = model2.predict(test)
+
+# form a new dataset for valid and test via stacking the predictions
+stacked_predictions = np.column_stack((preds1, preds2))
+stacked_test_predictions = np.column_stack((test_preds1, test_preds2))
+
+# specify meta model
+meta_model = LinearRegression()
+
+# fit meta model on stacked predictions
+meta_model.fit(stacked_predictions,yvalid)
+
+# make predictions on the stacked predictions of the test data
+final_predictions = meta_model.predict(stacked_test_predictions)</code></pre>
+</div>
+<div id="stacking-past-example" class="section level4">
+<h4>Stacking (past) example</h4>
+<ul>
+<li>Example of 2 models predicting age, with a split at age = 50.</li>
+<li>Applying stacking results in a model that performs similar to the model made from best parts of model 1 and 2. The stacked model is slightly less accurate at around age = 50, but is still able to identify the split at 50.</li>
+</ul>
+</div>
+<div id="things-to-be-mindful-of" class="section level4">
+<h4>Things to be mindful of</h4>
+<ul>
+<li>Time series data: create the data splits so that train is in the past, and validation is in the future. Ideally, the test data is also in the future.</li>
+<li>Diversity is as important as single-model performance. Even weak models may bring new information that helps the meta learner.</li>
+<li>Diversity may come from:
+<ul>
+<li>Different algorithms. E.g., a linear model will focus on linear relationships.</li>
+<li>Different input features. Run same model on different features or transformations.</li>
+</ul></li>
+<li>Performance plateaus after some number of models.
+<ul>
+<li>There will be a significant uplift at the start.</li>
+</ul></li>
+<li>Meta model is normally modest.
+<ul>
+<li>Leave the main work to the base learners.</li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="stacknet" class="section level3">
+<h3>StackNet</h3>
+<ul>
+<li>A scalable meta modelling methodology that utilizes stacking to combine multiple models in a neural network architecture of multiple levels.</li>
+<li>This method extends stacking to have multiple layers of meta-learners.</li>
+<li>These methods are criticized for having no commercial value and being computationally expensive.
+<ul>
+<li>What is expensive today may not be expensive tomorrow.</li>
+<li>Very deep ensembles are not always necessary, but small ensembles do help. This can add value to business. It depends on how fast predictions are needed, how much computing power is available, etc.</li>
+<li>These are competitions, and show the theoretical best.</li>
+</ul></li>
+</ul>
+<div id="stacknet-as-a-neural-network" class="section level4">
+<h4>StackNet as a neural network</h4>
+<ul>
+<li>In a neural network, every node is a simple linear model (like linear regression) with some non-linear transformation.</li>
+<li>Instead of a linear model, we could use <strong>any model</strong>.</li>
+<li>StackNet architecture is very similar to that of neural networks.</li>
+</ul>
+</div>
+<div id="how-to-train" class="section level4">
+<h4>How to train</h4>
+<ul>
+<li>Cannot use backprop, since not all models are differentiable.</li>
+<li>Stacking is used in place of backprop to link each model/node with the target.</li>
+<li>Use k-fold for data splitting (k can also be tuned).
+<ul>
+<li>Example for k = 4:
+<ul>
+<li>Split the train data into 4 equal parts.</li>
+<li>Create an empty pred vector with same number of rows as original train set.</li>
+<li>For fold 1, train a base model on folds 2-4, and make predictions on fold 1. Fill pred vector with these predictions in the appropriate rows.</li>
+<li>Repeat for fold 2, then 3, then 4, to fill the entire pred vector.</li>
+<li>Then use the whole original train set to fit another model and make predictions on test.</li>
+<li>Generate another empty vector, stack it next to the previous one, and repeat the above steps.</li>
+<li>After generating several empty vectors and filling them, this is now the new training dataset.</li>
+</ul></li>
+</ul></li>
+<li>Instead of epochs, this method has different connections. This is similar in spirit to epochs, as it changes the weights through revisiting.</li>
+<li>Can also use the original dataset for the final predictions. This works well if there are not many models.</li>
+<li>This is similar to target/mean encoding, where features are replaced with holdout predictions of the target variable.</li>
+</ul>
+</div>
+</div>
+<div id="ensembling-tips-and-tricks" class="section level3">
+<h3>Ensembling tips and tricks</h3>
+<div id="st-level-tips-base-learners" class="section level4">
+<h4>1st level tips (base learners)</h4>
+<ul>
+<li>Diversity based on algorithms. The following is a useful architecture:
+<ul>
+<li>2-3 GBT (LightGBM, XGBoost, H2O, Catboost). Use different libraries/implementations. Create a model with low depth, a model with mid depth, and one with high depth; tune params so that performance is similar across these models.</li>
+<li>2-3 neural nets. Again, create a model with 1 hidden layer, another model with 2-3, etc.</li>
+<li>1-2 ExtraTrees/RandomForest.</li>
+<li>1-2 linear models as in logistic/ridge regression, linear svm.</li>
+<li>1-2 knn models (sklearn). These are not good on their own, but add value in a stacking context.</li>
+<li>1 factorization machine (libfm).</li>
+<li>1 svm with nonlinear kernel if size/memory allows (sklearn)</li>
+</ul></li>
+<li>Diversity based on input data:
+<ul>
+<li>Categorical features: one hot, label encoding, target encoding.</li>
+<li>Numerical features: outliers, binning, derivatives (for smoothing), percentiles, scaling.</li>
+<li>Interactions: pairwise, groupby, unsupervised (kmeans, SVD, PCA).</li>
+</ul></li>
+</ul>
+</div>
+<div id="other-levels" class="section level4">
+<h4>Other levels</h4>
+<ul>
+<li>Simpler (or shallower) algorithms:
+<ul>
+<li>GBT with small depth (2-3)</li>
+<li>Linear models with high regularization</li>
+<li>ExtraTrees</li>
+<li>Shallow NN (with 1 hidden layer)</li>
+<li>kNN with Bray-Curtis distance</li>
+<li>Brute fore a search for best linear weights based on cv</li>
+</ul></li>
+<li>Feature engineering:
+<ul>
+<li>pairwise differences between meta features</li>
+<li>row-wise statistics like averages or stds</li>
+<li>standard feature selection techniques</li>
+</ul></li>
+<li>Rule of thumb: for every 7.5 models in previous level, add 1 in the next layer.</li>
+<li>Be mindful of target leakage. Might be introduced despite the holdout mechanism.
+<ul>
+<li>Control this by selecting the right k. For high k, each model uses more training data, and might not generalize well.</li>
+</ul></li>
+</ul>
+</div>
+<div id="software-for-stacking" class="section level4">
+<h4>Software for Stacking</h4>
+<ul>
+<li><a href="https://github.com/kaz-Anova/StackNet">StackNet</a></li>
+<li>Stacked ensembles from H2O</li>
+<li><a href="https://github.com/reiinakano/xcessiv">Xcessiv</a></li>
+</ul>
+</div>
+<div id="tips-about-stacknet-software" class="section level4">
+<h4>Tips about StackNet (software)</h4>
+<ul>
+<li>Supports many prominent tools (XGBoost, lightGBM, H2O, keras, …).</li>
+<li>Can run classifiers in regression and vice versa.
+<ul>
+<li>E.g. instead of predicting age, predict if this person is over 50 years old.</li>
+<li>This tends to work well.</li>
+</ul></li>
+<li>Has several top 10 solutions in competitions.</li>
+<li>Amazon competition has a good example kernel: sub_70_30.7z</li>
+<li>The parameters section lists which params are most important.</li>
+</ul>
+</div>
+<div id="final-tips-1" class="section level4">
+<h4>Final tips</h4>
+</div>
+</div>
+<div id="validation-schemes-for-2-nd-level-models" class="section level3">
+<h3>Validation schemes for 2-nd level models</h3>
+<hr />
 </div>
 </div>
 </div>
