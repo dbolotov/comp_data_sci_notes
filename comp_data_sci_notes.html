@@ -3484,12 +3484,125 @@ final_predictions = meta_model.predict(stacked_test_predictions)</code></pre>
 <li>The parameters section lists which params are most important.</li>
 </ul>
 </div>
-<div id="final-tips-1" class="section level4">
-<h4>Final tips</h4>
-</div>
 </div>
 <div id="validation-schemes-for-2-nd-level-models" class="section level3">
 <h3>Validation schemes for 2-nd level models</h3>
+<ul>
+<li>There are a number of ways to validate second level models (meta-models). In this reading material you will find a description for the most popular ones. If not specified, we assume that the data does not have a time component. We also assume we already validated and fixed hyperparameters for the first level models (models).</li>
+</ul>
+<div id="a-simple-holdout-scheme" class="section level5">
+<h5>a) Simple holdout scheme</h5>
+<ul>
+<li><ol style="list-style-type: decimal">
+<li>Split train data into three parts: partA and partB and partC.</li>
+</ol></li>
+<li><ol start="2" style="list-style-type: decimal">
+<li>Fit N diverse models on partA, predict for partB, partC, test_data getting meta-features partB_meta, partC_meta and test_meta respectively.</li>
+</ol></li>
+<li><ol start="3" style="list-style-type: decimal">
+<li>Fit a metamodel to a partB_meta while validating its hyperparameters on partC_meta.</li>
+</ol></li>
+<li><ol start="4" style="list-style-type: decimal">
+<li>When the metamodel is validated, fit it to [partB_meta, partC_meta] and predict for test_meta.</li>
+</ol></li>
+</ul>
+</div>
+<div id="b-meta-holdout-scheme-with-oof-meta-features" class="section level5">
+<h5>b) Meta holdout scheme with OOF meta-features</h5>
+<ul>
+<li><ol style="list-style-type: decimal">
+<li>Split train data into K folds. Iterate though each fold: retrain N diverse models on all folds except current fold, predict for the current fold. After this step for each object in train_data we will have N meta-features (also known as out-of-fold predictions, OOF). Let’s call them train_meta.</li>
+</ol></li>
+<li><ol start="2" style="list-style-type: decimal">
+<li>Fit models to whole train data and predict for test data. Let’s call these features test_meta.</li>
+</ol></li>
+<li><ol start="3" style="list-style-type: decimal">
+<li>Split train_meta into two parts: train_metaA and train_metaB. Fit a meta-model to train_metaA while validating its hyperparameters on train_metaB.</li>
+</ol></li>
+<li><ol start="4" style="list-style-type: decimal">
+<li>When the meta-model is validated, fit it to train_meta and predict for test_meta.</li>
+</ol></li>
+</ul>
+</div>
+<div id="c-meta-kfold-scheme-with-oof-meta-features" class="section level5">
+<h5>c) Meta KFold scheme with OOF meta-features</h5>
+<ul>
+<li><ol style="list-style-type: decimal">
+<li>Obtain OOF predictions train_meta and test metafeatures test_meta using b.1 and b.2.</li>
+</ol></li>
+<li><ol start="2" style="list-style-type: decimal">
+<li>Use KFold scheme on train_meta to validate hyperparameters for meta-model. A common practice to fix seed for this KFold to be the same as seed for KFold used to get OOF predictions.</li>
+</ol></li>
+<li><ol start="3" style="list-style-type: decimal">
+<li>When the meta-model is validated, fit it to train_meta and predict for test_meta.</li>
+</ol></li>
+</ul>
+</div>
+<div id="d-holdout-scheme-with-oof-meta-features" class="section level5">
+<h5>d) Holdout scheme with OOF meta-features</h5>
+<ul>
+<li><ol style="list-style-type: decimal">
+<li>Split train data into two parts: partA and partB.</li>
+</ol></li>
+<li><ol start="2" style="list-style-type: decimal">
+<li>Split partA into K folds. Iterate though each fold: retrain N diverse models on all folds except current fold, predict for the current fold. After this step for each object in partA we will have N meta-features (also known as out-of-fold predictions, OOF). Let’s call them partA_meta.</li>
+</ol></li>
+<li><ol start="3" style="list-style-type: decimal">
+<li>Fit models to whole partA and predict for partB and test_data, getting partB_meta and test_meta respectively.</li>
+</ol></li>
+<li><ol start="4" style="list-style-type: decimal">
+<li>Fit a meta-model to a partA_meta, using partB_meta to validate its hyperparameters.</li>
+</ol></li>
+<li><ol start="5" style="list-style-type: decimal">
+<li>When the meta-model is validated basically do 2. and 3. without dividing train_data into parts and then train a meta-model. That is, first get out-of-fold predictions train_meta for the train_data using models. Then train models on train_data, predict for test_data, getting test_meta. Train meta-model on the train_meta and predict for test_meta.</li>
+</ol></li>
+</ul>
+</div>
+<div id="e-kfold-scheme-with-oof-meta-features" class="section level5">
+<h5>e) KFold scheme with OOF meta-features</h5>
+<ul>
+<li><ol style="list-style-type: decimal">
+<li>To validate the model we basically do d.1 – d.4 but we divide train data into parts partA and partB M times using KFold strategy with M folds.</li>
+</ol></li>
+<li><ol start="2" style="list-style-type: decimal">
+<li>When the meta-model is validated do d.5.</li>
+</ol></li>
+</ul>
+</div>
+<div id="validation-in-presence-of-time-component" class="section level4">
+<h4>Validation in presence of time component</h4>
+<div id="f-kfold-scheme-in-time-series" class="section level5">
+<h5>f) KFold scheme in time series</h5>
+<ul>
+<li>In time-series task we usually have a fixed period of time we are asked to predict. Like day, week, month or arbitrary period with duration of T.</li>
+<li><ol style="list-style-type: decimal">
+<li>Split the train data into chunks of duration T. Select first M chunks.</li>
+</ol></li>
+<li><ol start="2" style="list-style-type: decimal">
+<li>Fit N diverse models on those M chunks and predict for the chunk M+1. Then fit those models on first M+1 chunks and predict for chunk M+2 and so on, until you hit the end. After that use all train data to fit models and get predictions for test. Now we will have meta-features for the chunks starting from number M+1 as well as meta-features for the test.</li>
+</ol></li>
+<li><ol start="3" style="list-style-type: decimal">
+<li>Now we can use meta-features from first K chunks [M+1,M+2,..,M+K] to fit level 2 models and validate them on chunk M+K+1. Essentially we are back to step 1. with the lesser amount of chunks and meta-features instead of features.</li>
+</ol></li>
+</ul>
+</div>
+<div id="g-kfold-scheme-in-time-series-with-limited-amount-of-data" class="section level5">
+<h5>g) KFold scheme in time series with limited amount of data</h5>
+<ul>
+<li>We may often encounter a situation where scheme f) is not applicable, especially with a limited amount of data.</li>
+<li>For example, when we have only years 2014, 2015, 2016 in train and we need to predict for a whole year 2017 in test.</li>
+<li>In such cases, scheme c) could be of help, but with one constraint: KFold split should be done with the respect to the time component. For example, in case of data with several years we would treat each year as a fold.</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="additional-material-and-links-8" class="section level3">
+<h3>Additional material and links</h3>
+<ul>
+<li><a href="https://mlwave.com/kaggle-ensembling-guide/">Kaggle ensembling guide at MLWave.com (overview of approaches)</a></li>
+<li><a href="https://github.com/kaz-Anova/StackNet">StackNet — a computational, scalable and analytical meta modelling framework (by KazAnova)</a></li>
+<li><a href="https://github.com/rushter/heamy">Heamy — a set of useful tools for competitive data science (including ensembling)</a></li>
+</ul>
 <hr />
 </div>
 </div>
