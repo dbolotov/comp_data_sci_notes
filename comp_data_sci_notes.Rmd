@@ -1798,7 +1798,7 @@ $$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
 - Sometimes, features can have an interpretation. E.g., the first feature in item can be a measure of movie sadness. Generally, consider these as abstract features which we can use to encode a user as we did before, with label encoding or one-hot encoding.
 - Specifically, our assumption about scalar product is the following: If we represent all attributes of users and items as matrices, their matrix product will be very close to the matrix with ratings. In other words, we try to find matrices $U$ and $M$ such that their product gives the matrix $R$. That is why this approach is called matrix factorization or matrix decomposition.
 
-#### Documents\words example
+#### Documents/words example
 - Sometimes, we need only features corresponding to rows.
 - Example: text processing. Extract bag of words features, and each document is described by a large sparse vector (row with 0 and 1 for each word).
 - If we do MF over these sparse features, we will get a representation for docs and a representation for terms. Now, every document is described by a small, dense vector. These are now features to be used in model training.
@@ -1821,18 +1821,18 @@ $$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
 #### Gotchas
 - MF is a trainable transformation and has its own params. Be careful and use the same transformation for all parts of your dataset.
 - Wrong way:
-  ```
+    ```
     pca = PCA(n_components=5)
     X_train_pca = pca.fit_transform(X_train)
     X_test_pca = pca.fit_transform(X_test)
-  ```
+    ```
 - Right way:
-  ```
+    ```
     X_all = np.concatenate([X_train,X_test])
     pca.fit(X_all)
     X_train_pca = pca.fit_transform(X_train)
     X_test_pca = pca.fit_transform(X_test)
-  ```
+    ```
 
 #### Summary
 - MF is a very general approach for dimensionality reduction and feature extraction.

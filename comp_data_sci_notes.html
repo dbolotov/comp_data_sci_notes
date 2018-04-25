@@ -2910,8 +2910,8 @@ df = pd.merge(df,gb,how=‘left’,on=[‘user_id’,‘page_id’]) ```</li>
 <li>Specifically, our assumption about scalar product is the following: If we represent all attributes of users and items as matrices, their matrix product will be very close to the matrix with ratings. In other words, we try to find matrices <span class="math inline">\(U\)</span> and <span class="math inline">\(M\)</span> such that their product gives the matrix <span class="math inline">\(R\)</span>. That is why this approach is called matrix factorization or matrix decomposition.</li>
 </ul>
 </div>
-<div id="documentsexample" class="section level4">
-<h4>Documentsexample</h4>
+<div id="documentswords-example" class="section level4">
+<h4>Documents/words example</h4>
 <ul>
 <li>Sometimes, we need only features corresponding to rows.</li>
 <li>Example: text processing. Extract bag of words features, and each document is described by a large sparse vector (row with 0 and 1 for each word).</li>
@@ -2945,8 +2945,15 @@ df = pd.merge(df,gb,how=‘left’,on=[‘user_id’,‘page_id’]) ```</li>
 <h4>Gotchas</h4>
 <ul>
 <li>MF is a trainable transformation and has its own params. Be careful and use the same transformation for all parts of your dataset.</li>
-<li>Wrong way: <code>pca = PCA(n_components=5) X_train_pca = pca.fit_transform(X_train) X_test_pca = pca.fit_transform(X_test)</code></li>
-<li>Right way: <code>X_all = np.concatenate([X_train,X_test]) pca.fit(X_all) X_train_pca = pca.fit_transform(X_train) X_test_pca = pca.fit_transform(X_test)</code></li>
+<li><p>Wrong way:</p>
+<pre><code>pca = PCA(n_components=5)
+X_train_pca = pca.fit_transform(X_train)
+X_test_pca = pca.fit_transform(X_test)</code></pre></li>
+<li><p>Right way:</p>
+<pre><code>X_all = np.concatenate([X_train,X_test])
+pca.fit(X_all)
+X_train_pca = pca.fit_transform(X_train)
+X_test_pca = pca.fit_transform(X_test)</code></pre></li>
 </ul>
 </div>
 <div id="summary-3" class="section level4">
