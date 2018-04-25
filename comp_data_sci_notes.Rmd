@@ -1404,8 +1404,8 @@ $$\bar{y} = \frac{1}{N}\sum_{i=1}^Ny_i$$
     - Overfitting: the model is so powerful that it overfits the train set and is not able to generalize at all.
 - When tuning params, try to understand if the model is currently under or over fitting. Adjust params to get closer to desired behavior.
 - Split all params to be tuned into two groups (color-coded):
-    - 1. <span style="color:green">Params that constrain the model</span>. If we increase these params, the model changes its behavior from overfitting to underfitting. Larger param values mean heavier constraint. Decrease these params to allow model to fit easier.
-    - 2. <span style="color:red">Params that lead to overfit</span>. Increasing these params lead to a better fit (overfit) on train set. Increase these params if model is underfitting; decrease if overfitting.
+    - 1. <span style="color:red">Parameters that constrain the model (red color)</span>. If we increase these params, the model changes its behavior from overfitting to underfitting. Larger param values mean heavier constraint. Decrease these params to allow model to fit easier.
+    - 2. <span style="color:green">Parameters that lead to overfit (green color)</span>. Increasing these params lead to a better fit (overfit) on train set. Increase these params if model is underfitting; decrease if overfitting.
 
 
 

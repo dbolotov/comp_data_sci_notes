@@ -2273,10 +2273,10 @@ best = fmin(xgb_score, space, algo=tpe.suggest, max_evals=1000)</code></pre>
 <li>Split all params to be tuned into two groups (color-coded):
 <ul>
 <li><ol style="list-style-type: decimal">
-<li><span style="color:green">Params that constrain the model</span>. If we increase these params, the model changes its behavior from overfitting to underfitting. Larger param values mean heavier constraint. Decrease these params to allow model to fit easier.</li>
+<li><span style="color:red">Parameters that constrain the model (red color)</span>. If we increase these params, the model changes its behavior from overfitting to underfitting. Larger param values mean heavier constraint. Decrease these params to allow model to fit easier.</li>
 </ol></li>
 <li><ol start="2" style="list-style-type: decimal">
-<li><span style="color:red">Params that lead to overfit</span>. Increasing these params lead to a better fit (overfit) on train set. Increase these params if model is underfitting; decrease if overfitting.</li>
+<li><span style="color:green">Parameters that lead to overfit (green color)</span>. Increasing these params lead to a better fit (overfit) on train set. Increase these params if model is underfitting; decrease if overfitting.</li>
 </ol></li>
 </ul></li>
 </ul>
