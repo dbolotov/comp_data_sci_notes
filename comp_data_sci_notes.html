@@ -128,6 +128,9 @@ $(document).ready(function () {
 <li><a href="#advanced-features-ii">Advanced Features II</a></li>
 <li><a href="#ensembling-1">Ensembling</a></li>
 </ul></li>
+<li><a href="#week-5">Week 5</a><ul>
+<li><a href="#competitions-go-through">Competitions go-through</a></li>
+</ul></li>
 <li><a href="#course-summary---most-important-points">Course summary - most important points</a></li>
 </ul>
 </div>
@@ -3499,82 +3502,46 @@ final_predictions = meta_model.predict(stacked_test_predictions)</code></pre>
 </ul>
 <div id="a-simple-holdout-scheme" class="section level5">
 <h5>a) Simple holdout scheme</h5>
-<ul>
-<li><ol style="list-style-type: decimal">
+<ol style="list-style-type: decimal">
 <li>Split train data into three parts: partA and partB and partC.</li>
-</ol></li>
-<li><ol start="2" style="list-style-type: decimal">
 <li>Fit N diverse models on partA, predict for partB, partC, test_data getting meta-features partB_meta, partC_meta and test_meta respectively.</li>
-</ol></li>
-<li><ol start="3" style="list-style-type: decimal">
 <li>Fit a metamodel to a partB_meta while validating its hyperparameters on partC_meta.</li>
-</ol></li>
-<li><ol start="4" style="list-style-type: decimal">
 <li>When the metamodel is validated, fit it to [partB_meta, partC_meta] and predict for test_meta.</li>
-</ol></li>
-</ul>
+</ol>
 </div>
 <div id="b-meta-holdout-scheme-with-oof-meta-features" class="section level5">
 <h5>b) Meta holdout scheme with OOF meta-features</h5>
-<ul>
-<li><ol style="list-style-type: decimal">
+<ol style="list-style-type: decimal">
 <li>Split train data into K folds. Iterate though each fold: retrain N diverse models on all folds except current fold, predict for the current fold. After this step for each object in train_data we will have N meta-features (also known as out-of-fold predictions, OOF). Let’s call them train_meta.</li>
-</ol></li>
-<li><ol start="2" style="list-style-type: decimal">
 <li>Fit models to whole train data and predict for test data. Let’s call these features test_meta.</li>
-</ol></li>
-<li><ol start="3" style="list-style-type: decimal">
 <li>Split train_meta into two parts: train_metaA and train_metaB. Fit a meta-model to train_metaA while validating its hyperparameters on train_metaB.</li>
-</ol></li>
-<li><ol start="4" style="list-style-type: decimal">
 <li>When the meta-model is validated, fit it to train_meta and predict for test_meta.</li>
-</ol></li>
-</ul>
+</ol>
 </div>
 <div id="c-meta-kfold-scheme-with-oof-meta-features" class="section level5">
 <h5>c) Meta KFold scheme with OOF meta-features</h5>
-<ul>
-<li><ol style="list-style-type: decimal">
+<ol style="list-style-type: decimal">
 <li>Obtain OOF predictions train_meta and test metafeatures test_meta using b.1 and b.2.</li>
-</ol></li>
-<li><ol start="2" style="list-style-type: decimal">
 <li>Use KFold scheme on train_meta to validate hyperparameters for meta-model. A common practice to fix seed for this KFold to be the same as seed for KFold used to get OOF predictions.</li>
-</ol></li>
-<li><ol start="3" style="list-style-type: decimal">
 <li>When the meta-model is validated, fit it to train_meta and predict for test_meta.</li>
-</ol></li>
-</ul>
+</ol>
 </div>
 <div id="d-holdout-scheme-with-oof-meta-features" class="section level5">
 <h5>d) Holdout scheme with OOF meta-features</h5>
-<ul>
-<li><ol style="list-style-type: decimal">
+<ol style="list-style-type: decimal">
 <li>Split train data into two parts: partA and partB.</li>
-</ol></li>
-<li><ol start="2" style="list-style-type: decimal">
 <li>Split partA into K folds. Iterate though each fold: retrain N diverse models on all folds except current fold, predict for the current fold. After this step for each object in partA we will have N meta-features (also known as out-of-fold predictions, OOF). Let’s call them partA_meta.</li>
-</ol></li>
-<li><ol start="3" style="list-style-type: decimal">
 <li>Fit models to whole partA and predict for partB and test_data, getting partB_meta and test_meta respectively.</li>
-</ol></li>
-<li><ol start="4" style="list-style-type: decimal">
 <li>Fit a meta-model to a partA_meta, using partB_meta to validate its hyperparameters.</li>
-</ol></li>
-<li><ol start="5" style="list-style-type: decimal">
 <li>When the meta-model is validated basically do 2. and 3. without dividing train_data into parts and then train a meta-model. That is, first get out-of-fold predictions train_meta for the train_data using models. Then train models on train_data, predict for test_data, getting test_meta. Train meta-model on the train_meta and predict for test_meta.</li>
-</ol></li>
-</ul>
+</ol>
 </div>
 <div id="e-kfold-scheme-with-oof-meta-features" class="section level5">
 <h5>e) KFold scheme with OOF meta-features</h5>
-<ul>
-<li><ol style="list-style-type: decimal">
+<ol style="list-style-type: decimal">
 <li>To validate the model we basically do d.1 – d.4 but we divide train data into parts partA and partB M times using KFold strategy with M folds.</li>
-</ol></li>
-<li><ol start="2" style="list-style-type: decimal">
 <li>When the meta-model is validated do d.5.</li>
-</ol></li>
-</ul>
+</ol>
 </div>
 <div id="validation-in-presence-of-time-component" class="section level4">
 <h4>Validation in presence of time component</h4>
@@ -3582,16 +3549,12 @@ final_predictions = meta_model.predict(stacked_test_predictions)</code></pre>
 <h5>f) KFold scheme in time series</h5>
 <ul>
 <li>In time-series task we usually have a fixed period of time we are asked to predict. Like day, week, month or arbitrary period with duration of T.</li>
-<li><ol style="list-style-type: decimal">
-<li>Split the train data into chunks of duration T. Select first M chunks.</li>
-</ol></li>
-<li><ol start="2" style="list-style-type: decimal">
-<li>Fit N diverse models on those M chunks and predict for the chunk M+1. Then fit those models on first M+1 chunks and predict for chunk M+2 and so on, until you hit the end. After that use all train data to fit models and get predictions for test. Now we will have meta-features for the chunks starting from number M+1 as well as meta-features for the test.</li>
-</ol></li>
-<li><ol start="3" style="list-style-type: decimal">
-<li>Now we can use meta-features from first K chunks [M+1,M+2,..,M+K] to fit level 2 models and validate them on chunk M+K+1. Essentially we are back to step 1. with the lesser amount of chunks and meta-features instead of features.</li>
-</ol></li>
 </ul>
+<ol style="list-style-type: decimal">
+<li>Split the train data into chunks of duration T. Select first M chunks.</li>
+<li>Fit N diverse models on those M chunks and predict for the chunk M+1. Then fit those models on first M+1 chunks and predict for chunk M+2 and so on, until you hit the end. After that use all train data to fit models and get predictions for test. Now we will have meta-features for the chunks starting from number M+1 as well as meta-features for the test.</li>
+<li>Now we can use meta-features from first K chunks [M+1,M+2,..,M+K] to fit level 2 models and validate them on chunk M+K+1. Essentially we are back to step 1. with the lesser amount of chunks and meta-features instead of features.</li>
+</ol>
 </div>
 <div id="g-kfold-scheme-in-time-series-with-limited-amount-of-data" class="section level5">
 <h5>g) KFold scheme in time series with limited amount of data</h5>
@@ -3610,6 +3573,175 @@ final_predictions = meta_model.predict(stacked_test_predictions)</code></pre>
 <li><a href="https://github.com/kaz-Anova/StackNet">StackNet — a computational, scalable and analytical meta modelling framework (by KazAnova)</a></li>
 <li><a href="https://github.com/rushter/heamy">Heamy — a set of useful tools for competitive data science (including ensembling)</a></li>
 </ul>
+<hr />
+</div>
+</div>
+</div>
+<div id="week-5" class="section level1">
+<h1>Week 5</h1>
+<div id="competitions-go-through" class="section level2">
+<h2>Competitions go-through</h2>
+<div id="crowdflower-competition" class="section level3">
+<h3>Crowdflower Competition</h3>
+<div id="problem-formulation" class="section level4">
+<h4>Problem formulation</h4>
+<ul>
+<li>Measure relevance of the search results, given the queries and resulting product descriptions from e-commerce sites.</li>
+<li>The task is to evaluate the accuracy of their search algorithms.</li>
+<li>The challenge is to predict the relevance score of the given query and product description.</li>
+</ul>
+</div>
+<div id="assessor-ui" class="section level4">
+<h4>Assessor UI</h4>
+<ul>
+<li>The interface has a query and an item.</li>
+<li>Assessors are asked to give each query-product pair a score of 1 (no match) to 4 (complete match).</li>
+<li>The training data has a median and variance of these scores.</li>
+</ul>
+</div>
+<div id="data" class="section level4">
+<h4>Data</h4>
+<ul>
+<li>The dataset consists of: id, query, product_title, product_description, median_relevance, relevance_variance.</li>
+<li>To ensure that the algorithm is robust enough to handle any HTML snippets in the real world, the data provided in the program description field is raw and sometimes contain information that is relevant to the product. E.g., object ID.</li>
+<li>To discourage hand labeling, the actual test set was augmented with extra data. This additional data is ignored when private and public LB scores were calculated. Competitors have no idea which objects were used to calculate the scores.</li>
+<li>10,000 samples in train, and 10,000 in test.</li>
+</ul>
+</div>
+<div id="competition-metric" class="section level4">
+<h4>Competition metric</h4>
+<ul>
+<li>Quadratic weighted kappa.</li>
+<li>Typical value range: from 0 (random) to 1 (complete agreement between two ratings).</li>
+<li>May go below 0.</li>
+<li>Has properties both to standard classification loss and regression loss. Larger distance between true and predicted ratings leads to larger penalty.</li>
+</ul>
+</div>
+<div id="our-solution" class="section level4">
+<h4>Our solution</h4>
+<div id="text-features-similarities" class="section level5">
+<h5>Text features: similarities</h5>
+<ul>
+<li>We have 3 text fields: a query, a title, and a description.</li>
+<li>We can calulate various measures of similarity. That is, for (query, title) and (query, description) pairs we calculated:
+<ul>
+<li>The number of matching words</li>
+<li>Cosine distance between TF-IDF representations</li>
+<li>Distance between the average word2vec vectors</li>
+<li>Levenshtein distance</li>
+</ul></li>
+<li>The above list is a standard set of features that should be used for similar tasks. These features are considered as a baseline.</li>
+</ul>
+</div>
+<div id="text-features-symbolic-n-grams" class="section level5">
+<h5>Text features: symbolic n-grams</h5>
+<ul>
+<li>Each letter is interpreted as a separate word.</li>
+<li>We used symbolic n-grams for 1 letter to 5 letters.</li>
+<li>Example: for a text input of “once upon a time”, generate the following n-grams: ‘Once_’, ‘nce_u’, ‘ce_up’, ‘e_up’, etc.</li>
+<li>After getting a large sparse matrix of n-grams, apply SVD and keep the first 300 components as features.</li>
+</ul>
+</div>
+<div id="important-data-properties" class="section level5">
+<h5>3 important data properties</h5>
+<ul>
+<li>Observations: queries are very short, the number of unique queries is 261, and queries are the same in train and test.</li>
+<li>Use these observations to build extended versions of queries as follows:
+<ul>
+<li>For each query, get the most relevant corresponding items (those with relevance = 4), join all words from the product title, and take 10 most popular words.</li>
+<li>Example: query_original = “bridal shower decorations”; query_extended = “shower bridal banner person decor mr 192 30 36 new”.</li>
+</ul></li>
+<li>Use the extended queries to build features mentioned earlier.</li>
+<li>This trick is applicable only within this contest framework, since queries in the test set are <em>exactly</em> the same as in train.</li>
+</ul>
+</div>
+<div id="per-query-models" class="section level5">
+<h5>Per-query models</h5>
+<ul>
+<li>The fact that queries are the same in train and test gives us the opportunity to split our problem into many small subtasks.</li>
+<li>Specifically, for each query, you can build a separate model, that will only predict relevance of corresponding items.</li>
+<li>Again, this cannot be applied in real life.</li>
+<li>So, for each unique query, we get corresponding samples, calculate word2vec similarities, bag-of-words representation, and fit a random forest classifier. This results in 261 models; the predictions of these models were used as features in the final ensemble model.</li>
+</ul>
+</div>
+<div id="sample-weighting" class="section level5">
+<h5>Sample weighting</h5>
+<ul>
+<li>We are given the variance of scores for each (query, product) pair.</li>
+<li>The variance shows if the ratings are inconsistent or not. Large variance means low confidence about the label.</li>
+<li>Intuitively, if variance is large, this observation should have a a smaller weight.</li>
+<li>One way to do this is to assign weights based on variances: <span class="math inline">\(w = \frac{1}{1+\sigma}\)</span>.
+<ul>
+<li>This approach worked well and was used in the final solution.</li>
+</ul></li>
+<li>Another way is to restore individual scores using median and variance statistics. It is possible to do this assuming that there are 3 raters.
+<ul>
+<li>Example: if median = 3.0 and <span class="math inline">\(\sigma\)</span> = 0.66, then the scores are probably [2,3,4].</li>
+<li>Using this approach, can generate 3 new observations from each original sample.</li>
+<li>This approach took longer to train and resulted in almost no gain.</li>
+</ul></li>
+</ul>
+</div>
+<div id="bumper-features" class="section level5">
+<h5>Bumper features</h5>
+<ul>
+<li>For quardratic kappa, penalty for the error is not symmetric.</li>
+<li>We took this into account, adding several artificially created binary delimiters between classes as features.</li>
+<li>In other words, we train the classifiers to answer these questions:
+<ul>
+<li>“Is it true that the target class number is greater than 1?”</li>
+<li>“Is it true that the target class number is greater than 2?”</li>
+<li>“Is it true that the target class number is greater than 3?”</li>
+</ul></li>
+<li>These features are called “bumpers” since they act like separators between classes.</li>
+<li>Build these features in out-of-fold fashion, similar to constructing first-level predictions in stacking.</li>
+<li>These features were very useful for the final solution.</li>
+</ul>
+</div>
+<div id="ensemble" class="section level5">
+<h5>Ensemble</h5>
+<ul>
+<li>We build several models on different subsets of features. Some were relatively simple, like SVM, and some were quite complex.</li>
+<li>There are many first-stage models mixed up with second-stage random forest.</li>
+<li>Each participant in the team made their own model. For the final submission, the models were combined linearly.</li>
+</ul>
+</div>
+<div id="kappa-optimization" class="section level5">
+<h5>Kappa optimization</h5>
+<ul>
+<li>The metric has properties of classification (it’s necessary to predict the class) and regression (larger deviation from correct answer gets more penalty).</li>
+<li>We built the model as regression, but needed a way to turn real-valued predictions into classes.</li>
+<li>We varied thresholds for every class and selected the best ones using cross-validation.</li>
+<li>This significantly increased the score.</li>
+</ul>
+</div>
+<div id="conclusion---most-important-parts-of-our-solution" class="section level5">
+<h5>Conclusion - most important parts of our solution</h5>
+<ul>
+<li>Symbolic n-grams</li>
+<li>Expansion of queries</li>
+<li>Optimization of thresholds for Kappa</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="springleaf-marketing-response" class="section level3">
+<h3>Springleaf Marketing Response</h3>
+</div>
+<div id="microsoft-malware-classification-challenge" class="section level3">
+<h3>Microsoft Malware Classification Challenge</h3>
+</div>
+<div id="walmart-trip-type-classification" class="section level3">
+<h3>Walmart: Trip Type Classification</h3>
+</div>
+<div id="acquire-valued-shoppers-challenge-part-1" class="section level3">
+<h3>Acquire Valued Shoppers Challenge, part 1</h3>
+</div>
+<div id="acquire-valued-shoppers-challenge-part-2" class="section level3">
+<h3>Acquire Valued Shoppers Challenge, part 2</h3>
+</div>
+<div id="additional-material-and-links-9" class="section level3">
+<h3>Additional material and links</h3>
 <hr />
 </div>
 </div>
