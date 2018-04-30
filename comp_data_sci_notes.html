@@ -3727,6 +3727,72 @@ final_predictions = meta_model.predict(stacked_test_predictions)</code></pre>
 </div>
 <div id="springleaf-marketing-response" class="section level3">
 <h3>Springleaf Marketing Response</h3>
+<ul>
+<li>This section describes the last part of the solution - stacking and ensemble.</li>
+<li>The solution consists of several levels, starting with the features.</li>
+</ul>
+<div id="task-description" class="section level4">
+<h4>Task description</h4>
+<ul>
+<li>Determine whether to send a direct mail piece to a customer.</li>
+<li>Binary classification task with AUC metric.</li>
+<li>Train data: 145000 samples, 2000 anonymized features.</li>
+</ul>
+</div>
+<div id="level-0---feature-packs" class="section level4">
+<h4>Level 0 - Feature packs</h4>
+<ul>
+<li>These are features derived and discovered during EDA.</li>
+<li>Basic dataset: basic data cleaning and feature engineering.</li>
+<li>Processed dataset: advanced data cleaning and feature engineering.
+<ul>
+<li>Feature interactions based on scatter plots and correlations, etc.</li>
+</ul></li>
+<li>Mean-encoded dataset: projecting features into homogeneous space.</li>
+<li>KNN dataset: distance features on mean-encoded data.
+<ul>
+<li>Distance to closest object of class 0.</li>
+<li>How many of the 10 nearest neighbors belong to class 1.</li>
+</ul></li>
+</ul>
+</div>
+<div id="level-1" class="section level4">
+<h4>Level 1</h4>
+<div id="out-of-fold-predictions---xgboost" class="section level5">
+<h5>Out-of-fold predictions - xgboost</h5>
+<ul>
+<li>Several different GBDT models and one NN model. The main idea is that meta features should be diverse.
+<ul>
+<li>We used both different sets of params and different sets of features for the xgboost models.</li>
+<li>For NN, preprocess the features with common scalers (StandardScaler, Ranks, Power).</li>
+</ul></li>
+</ul>
+</div>
+<div id="pairwise-differences" class="section level5">
+<h5>Pairwise differences</h5>
+<ul>
+<li>After producing metafeatures with GBDT and NN, calculate pair-wise differences to help next-level models. This is a trick to force the model to utilize differences in the first-level model predictions.</li>
+<li>Added two datasets of features based on nearest neighbors:
+<ul>
+<li>One directly from Level 0.</li>
+<li>One on the mean-encoded dataset to power of 1/2.</li>
+</ul></li>
+</ul>
+</div>
+<div id="level-2---classifiers" class="section level5">
+<h5>Level 2 - classifiers</h5>
+<ul>
+<li>Train simple classifiers (meta models) on the out-of-fold predictions.</li>
+<li>Models: GBTD, NN, RF, Logistic Regression.</li>
+</ul>
+</div>
+<div id="level-3" class="section level5">
+<h5>Level 3</h5>
+<ul>
+<li>Linear combination of the Level 2 models.</li>
+</ul>
+</div>
+</div>
 </div>
 <div id="microsoft-malware-classification-challenge" class="section level3">
 <h3>Microsoft Malware Classification Challenge</h3>
@@ -3742,6 +3808,16 @@ final_predictions = meta_model.predict(stacked_test_predictions)</code></pre>
 </div>
 <div id="additional-material-and-links-9" class="section level3">
 <h3>Additional material and links</h3>
+<ul>
+<li>You can often find a solution of the competition you’re interested on its forum. Here we put links to collections of such solutions that will prove useful to you.</li>
+<li>Past solutions:
+<ul>
+<li><a href="http://ndres.me/kaggle-past-solutions/" class="uri">http://ndres.me/kaggle-past-solutions/</a></li>
+<li><a href="https://www.kaggle.com/wiki/PastSolutions" class="uri">https://www.kaggle.com/wiki/PastSolutions</a></li>
+<li><a href="http://www.chioka.in/kaggle-competition-solutions/" class="uri">http://www.chioka.in/kaggle-competition-solutions/</a></li>
+<li><a href="https://github.com/ShuaiW/kaggle-classification/" class="uri">https://github.com/ShuaiW/kaggle-classification/</a></li>
+</ul></li>
+</ul>
 <hr />
 </div>
 </div>

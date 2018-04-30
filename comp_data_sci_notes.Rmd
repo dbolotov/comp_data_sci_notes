@@ -2340,6 +2340,42 @@ final_predictions = meta_model.predict(stacked_test_predictions)
 
 
 ### Springleaf Marketing Response
+- This section describes the last part of the solution - stacking and ensemble.
+- The solution consists of several levels, starting with the features.
+
+#### Task description
+- Determine whether to send a direct mail piece to a customer.
+- Binary classification task with AUC metric.
+- Train data: 145000 samples, 2000 anonymized features.
+
+#### Level 0 - Feature packs
+- These are features derived and discovered during EDA.
+- Basic dataset: basic data cleaning and feature engineering.
+- Processed dataset: advanced data cleaning and feature engineering.
+    - Feature interactions based on scatter plots and correlations, etc.
+- Mean-encoded dataset: projecting features into homogeneous space.
+- KNN dataset: distance features on mean-encoded data.
+    - Distance to closest object of class 0.
+    - How many of the 10 nearest neighbors belong to class 1.
+
+#### Level 1
+##### Out-of-fold predictions - xgboost
+- Several different GBDT models and one NN model. The main idea is that meta features should be diverse.
+    - We used both different sets of params and different sets of features for the xgboost models.
+    - For NN, preprocess the features with common scalers (StandardScaler, Ranks, Power).
+
+##### Pairwise differences
+- After producing metafeatures with GBDT and NN, calculate pair-wise differences to help next-level models. This is a trick to force the model to utilize differences in the first-level model predictions.
+- Added two datasets of features based on nearest neighbors:
+    - One directly from Level 0.
+    - One on the mean-encoded dataset to power of 1/2.
+
+##### Level 2 - classifiers
+- Train simple classifiers (meta models) on the out-of-fold predictions.
+- Models: GBTD, NN, RF, Logistic Regression.
+
+##### Level 3
+- Linear combination of the Level 2 models.
 
 
 
@@ -2360,7 +2396,12 @@ final_predictions = meta_model.predict(stacked_test_predictions)
 
 
 ### Additional material and links
-
+- You can often find a solution of the competition you're interested on its forum. Here we put links to collections of such solutions that will prove useful to you.
+- Past solutions:
+    - http://ndres.me/kaggle-past-solutions/
+    - https://www.kaggle.com/wiki/PastSolutions
+    - http://www.chioka.in/kaggle-competition-solutions/
+    - https://github.com/ShuaiW/kaggle-classification/
 
 
 * * *
