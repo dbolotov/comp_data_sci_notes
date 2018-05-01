@@ -483,6 +483,11 @@ It is important to understand that competition data can be only a part of the da
 - Others
     - [Biclustering algorithms for sorting corrplots](http://scikit-learn.org/stable/auto_examples/bicluster/plot_spectral_biclustering.html)
 
+## EDA examples - TODO
+### Springleaf competition EDA I - TODO
+### Springleaf competition EDA II - TODO
+### Numerai competition EDA - TODO
+
 
 ## Validation
 ### Validation and overfitting
@@ -751,6 +756,8 @@ Notice, that these are *validation* schemes are supposed to be used to estimate 
         - Like in all pairwise competitions, participants are not asked to evaluate *all* possible pairs - there is always some non-random subsampling. This subsampling is the cause of data leakage.
         - Usually, organisers mostly hard-to-distinguish pairs. This leads to imbalance in item frequency: more frequent items have a higher possibility of being duplicates.
         - We can create a connectivity matrix NxN, where N is the total number of items. If item i and item j appeared in a pair, put 1 in positions ij and ji. Treat the rows of this matrix as vector representations of every item. This means that we can compute similarities between those vectors. This trick works because two items have similar sets of neighbors, they have a high possibility of being duplicates.
+
+### Expedia challenge - TODO
 
 ### Additional material and links
 - [Perfect score script by Oleg Trott](https://www.kaggle.com/olegtrott/the-perfect-score-script) -- used to probe leaderboard
