@@ -3794,17 +3794,58 @@ final_predictions = meta_model.predict(stacked_test_predictions)</code></pre>
 </div>
 </div>
 </div>
-<div id="microsoft-malware-classification-challenge" class="section level3">
-<h3>Microsoft Malware Classification Challenge</h3>
+<div id="microsoft-malware-classification-challenge---todo" class="section level3">
+<h3>Microsoft Malware Classification Challenge - TODO</h3>
 </div>
 <div id="walmart-trip-type-classification" class="section level3">
 <h3>Walmart: Trip Type Classification</h3>
+<div id="problem-statement" class="section level4">
+<h4>Problem statement</h4>
+<ul>
+<li>Given data about purchases, classify it into 38 distinct trip types.</li>
+<li>Predict trip type for visit number, and not for each row in the dataset.</li>
+</ul>
 </div>
-<div id="acquire-valued-shoppers-challenge-part-1" class="section level3">
-<h3>Acquire Valued Shoppers Challenge, part 1</h3>
+<div id="data-format" class="section level4">
+<h4>Data format</h4>
+<ul>
+<li>647000 rows, 95000 visits in the train data.</li>
+<li>Features: TripType, VisitNumber, Weekday, Upc, ScanCount, DepartmentDescription, FinelineNumber.
+<ul>
+<li>Upc: exact id of the item.</li>
+<li>ScanCount: number of items purchased. “-1” represents a return.</li>
+<li>DepartmentDescription: 68 unique values.</li>
+<li>FinelineNumber: more refined category for an item (~5000 categories).</li>
+</ul></li>
+<li>In the default data item, several rows might belong to the same visit number. Using the data as-is does not capture important interactions between the items.
+<ul>
+<li>E.g., TripType may have the number 26 if more than half of its items are from the “paint and accessories” category. But, there is no accounting for the interactions between items.</li>
+</ul></li>
+<li>Shaping the data so that each row is a complete visit will allow to capture interactions.
+<ul>
+<li>After converting to this format, the items purchased in a visit can be treated as words in a text, and some of the usual text processing techniques apply (e.g., TF-IDF).</li>
+</ul></li>
+</ul>
 </div>
-<div id="acquire-valued-shoppers-challenge-part-2" class="section level3">
-<h3>Acquire Valued Shoppers Challenge, part 2</h3>
+<div id="models" class="section level4">
+<h4>Models</h4>
+<ul>
+<li>Tree models and neural networks capture interactions better than linear models. However, linear models are useful for generating meta-features.</li>
+</ul>
+</div>
+<div id="feature-engineering-1" class="section level4">
+<h4>Feature engineering</h4>
+<ul>
+<li>One interesting observation is that one FinelineNumber can belong to multiple department descriptions. This means that FinelineNumber is not as detailed as originally thought.</li>
+<li>Another feature generation idea was connected to the time structure of the data. The data appears to be sorted in chronological order and span 31 days, but the train-test split was not time-based. This makes it possible to derive features like day number in the dataset, number of visit in day, and total amount of visits in day.</li>
+</ul>
+</div>
+</div>
+<div id="acquire-valued-shoppers-challenge-part-1---todo" class="section level3">
+<h3>Acquire Valued Shoppers Challenge, part 1 - TODO</h3>
+</div>
+<div id="acquire-valued-shoppers-challenge-part-2---todo" class="section level3">
+<h3>Acquire Valued Shoppers Challenge, part 2 - TODO</h3>
 </div>
 <div id="additional-material-and-links-9" class="section level3">
 <h3>Additional material and links</h3>
