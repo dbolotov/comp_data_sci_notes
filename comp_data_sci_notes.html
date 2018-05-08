@@ -4025,11 +4025,115 @@ final_predictions = meta_model.predict(stacked_test_predictions)</code></pre>
 </ul>
 </div>
 </div>
-<div id="acquire-valued-shoppers-challenge-part-1---todo" class="section level3">
-<h3>Acquire Valued Shoppers Challenge, part 1 - TODO</h3>
+<div id="acquire-valued-shoppers-challenge-part-1" class="section level3">
+<h3>Acquire Valued Shoppers Challenge, part 1</h3>
+<div id="background" class="section level4">
+<h4>Background</h4>
+<ul>
+<li>Build a recommender to recommend items to customers.</li>
+<li>The solution was focused on really understanding the problem and properly validating.</li>
+</ul>
 </div>
-<div id="acquire-valued-shoppers-challenge-part-2---todo" class="section level3">
-<h3>Acquire Valued Shoppers Challenge, part 2 - TODO</h3>
+<div id="problem-statement-1" class="section level4">
+<h4>Problem statement</h4>
+<ul>
+<li>310,000 shoppers (160K train, 150k test)</li>
+<li>350,000,000 transactions (for 1 year+ for each shopper)</li>
+<li>37 offers (coupons) incentivizing purchase (24 offers in train data).</li>
+<li>The data did not have a ‘product’ column, but this could be inferred (from brand, category and company)</li>
+<li>For each customer, there is a 1-year timeline of visits/purchases, and then the coupon. All transactional history stops after the coupon. It is known if the customer redeemed the coupon. For training data, there is another flag of whether the customer purchased that item <em>again</em> afterwards.</li>
+<li>Optimize AUC for whether the shopper will buy again.</li>
+</ul>
+</div>
+<div id="challenges-of-this-challenge" class="section level4">
+<h4>“Challenges” of this challenge</h4>
+<ul>
+<li>Large dataset</li>
+<li>No features given; had to create the features yourself.</li>
+<li>Irregular testing environment:
+<ul>
+<li>Train and test data had different customers (no overlap).</li>
+<li>Most offers apper only in test or in train (minimal overlap).</li>
+</ul></li>
+<li>Test data may we well in the future.</li>
+<li>Focused on acquisition. Limited history of customer and offer (coldstart problem).</li>
+<li>Offers’ propensity to buy varies significantly.</li>
+</ul>
+</div>
+<div id="handling-big-data" class="section level4">
+<h4>Handling big data</h4>
+<ul>
+<li>Use indexing. The dataset was already sorted by customer and time. Parse through the transactions data. For each customer, create a new file with all of that customer’s history.</li>
+<li>To generate features for a specific customer, just access their file. This can be done in parallel.</li>
+<li>Also create a file for each category, brand, company.</li>
+</ul>
+</div>
+<div id="handling-irregularity" class="section level4">
+<h4>Handling irregularity</h4>
+<ul>
+<li>Explored different cross validation.</li>
+<li>Stratified k-fold based on offer (so that each offer is represented equally). This had good internal results, but doesn’t really work since test and train data have <em>different</em> offers.</li>
+<li>Leave-one-offer-out. This gave better results. However, while AUC is really good when picking between 2 offers, it is not as good when picking between all 37 offers.</li>
+<li>Combine the 2-offer AUC and multi-offer AUC into one new metric to optimize. This metric was the closest in results on the test set.</li>
+</ul>
+</div>
+</div>
+<div id="acquire-valued-shoppers-challenge-part-2" class="section level3">
+<h3>Acquire Valued Shoppers Challenge, part 2</h3>
+<div id="strategies-for-recommenders" class="section level4">
+<h4>Strategies for recommenders</h4>
+<div id="content-based-approach" class="section level5">
+<h5>Content-based approach</h5>
+<ul>
+<li>Recommendations are made on characteristics of the product.</li>
+<li>Assumption: a customer who has bought from the same company, brand, and category, will have a higher chance to buy the products once offered.</li>
+<li>Features exploiting product hierarchy versus customer and time.
+<ul>
+<li>Product sales can be seasonal (e.g. ice cream in summer).</li>
+<li>Define time intervals (last 30, 60, 90, 120, 180, 360 days) that the customer has purchased from combination of same company, brand, or category.
+<ul>
+<li>E.g. times bought same category &amp; brand in the last 30 days; times bought the same category &amp; company in last 30 to 60 days, etc.</li>
+</ul></li>
+</ul></li>
+<li>Features selected through forward cross validation: add 1 feature at a time.</li>
+<li>Big values were capped, and missing values were replaced with -1. Many of the missing values were produced by the generated features.</li>
+<li>Model using Ridge Regression on the actual repeat count (not on the binary repeated or not class). This gives stronger information.</li>
+<li>This scored 0.610+ on test data (near top-10 on LB).</li>
+</ul>
+</div>
+<div id="collaborative-filtering-approach" class="section level5">
+<h5>Collaborative filtering approach</h5>
+<ul>
+<li>Make recommendations based on similar customers’ preferences, <em>not</em> on the item.</li>
+<li>Would the customers have bought the product had they not received the offer?</li>
+<li>Made a model for every offer in train and test.</li>
+<li>The target variable is the natural log of the times a customer bought the product 90 days BEFORE receiving the coupon. This ignores the coupon completely. This identifies customers that like the product regardless of the offer.</li>
+<li>Features were focused on user activity:
+<ul>
+<li>Counts of popular categories, brands, customers.</li>
+<li>Used Restricted Boltzmann Machines to summarize purchase activity on least popular categories.
+<ul>
+<li>Inspired by Hinton.</li>
+<li>This is an unsupervised approach.</li>
+</ul></li>
+<li>Other features: average amount purchase, total visits, distinct brands/categories/companies.</li>
+<li>Total discounts/returns, visits on weekends, spend in weekends.</li>
+</ul></li>
+<li>Models using GBM (from sklearn) on the log of counts of how many times the product was bought in 90 days before the offer.</li>
+<li>This scored 0.616+ on the test.</li>
+</ul>
+</div>
+<div id="hybrid-approach" class="section level5">
+<h5>Hybrid approach</h5>
+<ul>
+<li>Both models were trained on different targets. This is tough to combine normally.</li>
+<li>However, irrespective of the scores, the distributions looked similar.</li>
+<li>This gave us the idea that since AUC cares about rank, to transform the scores into rank.</li>
+<li>So, convert the scores to rank and merge the two approaches by averaging.</li>
+<li>This scored 0.626 on the test.</li>
+</ul>
+</div>
+</div>
 </div>
 <div id="additional-material-and-links-9" class="section level3">
 <h3>Additional material and links</h3>

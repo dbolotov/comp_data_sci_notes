@@ -2514,12 +2514,75 @@ final_predictions = meta_model.predict(stacked_test_predictions)
 
 
 
+### Acquire Valued Shoppers Challenge, part 1
+#### Background
+- Build a recommender to recommend items to customers.
+- The solution was focused on really understanding the problem and properly validating.
 
-### Acquire Valued Shoppers Challenge, part 1 - TODO
+#### Problem statement
+- 310,000 shoppers (160K train, 150k test)
+- 350,000,000 transactions (for 1 year+ for each shopper)
+- 37 offers (coupons) incentivizing purchase (24 offers in train data).
+- The data did not have a 'product' column, but this could be inferred (from brand, category and company)
+- For each customer, there is a 1-year timeline of visits/purchases, and then the coupon. All transactional history stops after the coupon. It is known if the customer redeemed the coupon. For training data, there is another flag of whether the customer purchased that item *again* afterwards.
+- Optimize AUC for whether the shopper will buy again.
 
+#### "Challenges" of this challenge
+- Large dataset
+- No features given; had to create the features yourself.
+- Irregular testing environment:
+    - Train and test data had different customers (no overlap).
+    - Most offers apper only in test or in train (minimal overlap).
+- Test data may we well in the future.
+- Focused on acquisition. Limited history of customer and offer (coldstart problem).
+- Offers' propensity to buy varies significantly.
 
+#### Handling big data
+- Use indexing. The dataset was already sorted by customer and time. Parse through the transactions data. For each customer, create a new file with all of that customer's history.
+- To generate features for a specific customer, just access their file. This can be done in parallel.
+- Also create a file for each category, brand, company.
 
-### Acquire Valued Shoppers Challenge, part 2 - TODO
+#### Handling irregularity
+- Explored different cross validation.
+- Stratified k-fold based on offer (so that each offer is represented equally). This had good internal results, but doesn't really work since test and train data have *different* offers.
+- Leave-one-offer-out. This gave better results. However, while AUC is really good when picking between 2 offers, it is not as good when picking between all 37 offers.
+- Combine the 2-offer AUC and multi-offer AUC into one new metric to optimize. This metric was the closest in results on the test set.
+
+### Acquire Valued Shoppers Challenge, part 2
+#### Strategies for recommenders
+##### Content-based approach
+- Recommendations are made on characteristics of the product.
+- Assumption: a customer who has bought from the same company, brand, and category, will have a higher chance to buy the products once offered.
+- Features exploiting product hierarchy versus customer and time.
+    - Product sales can be seasonal (e.g. ice cream in summer).
+    - Define time intervals (last 30, 60, 90, 120, 180, 360 days) that the customer has purchased from combination of same company, brand, or category.
+        - E.g. times bought same category & brand in the last 30 days; times bought the same category & company in last 30 to 60 days, etc.
+- Features selected through forward cross validation: add 1 feature at a time.
+- Big values were capped, and missing values were replaced with -1. Many of the missing values were produced by the generated features.
+- Model using Ridge Regression on the actual repeat count (not on the binary repeated or not class). This gives stronger information.
+- This scored 0.610+ on test data (near top-10 on LB).
+
+##### Collaborative filtering approach
+- Make recommendations based on similar customers' preferences, *not* on the item.
+- Would the customers have bought the product had they not received the offer?
+- Made a model for every offer in train and test.
+- The target variable is the natural log of the times a customer bought the product 90 days BEFORE receiving the coupon. This ignores the coupon completely. This identifies customers that like the product regardless of the offer.
+- Features were focused on user activity:
+    - Counts of popular categories, brands, customers.
+    - Used Restricted Boltzmann Machines to summarize purchase activity on least popular categories.
+        - Inspired by Hinton.
+        - This is an unsupervised approach.
+    - Other features: average amount purchase, total visits, distinct brands/categories/companies.
+    - Total discounts/returns, visits on weekends, spend in weekends.
+- Models using GBM (from sklearn) on the log of counts of how many times the product was bought in 90 days before the offer.
+- This scored 0.616+ on the test.
+
+##### Hybrid approach
+- Both models were trained on different targets. This is tough to combine normally.
+- However, irrespective of the scores, the distributions looked similar.
+- This gave us the idea that since AUC cares about rank, to transform the scores into rank.
+- So, convert the scores to rank and merge the two approaches by averaging.
+- This scored 0.626 on the test.
 
 
 
