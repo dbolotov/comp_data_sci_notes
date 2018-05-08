@@ -3810,8 +3810,176 @@ final_predictions = meta_model.predict(stacked_test_predictions)</code></pre>
 </div>
 </div>
 </div>
-<div id="microsoft-malware-classification-challenge---todo" class="section level3">
-<h3>Microsoft Malware Classification Challenge - TODO</h3>
+<div id="microsoft-malware-classification-challenge" class="section level3">
+<h3>Microsoft Malware Classification Challenge</h3>
+<div id="problem-description" class="section level4">
+<h4>Problem description</h4>
+<ul>
+<li>Given ~20000 program executables (.5TB), each given in two forms:
+<ul>
+<li>HEX dump (row format)</li>
+<li>IDA disassembly
+<ul>
+<li>IDA (interactive disassembly) converts low-level sequence of bytes from HEX dump to a sequence of assembler commands.</li>
+</ul></li>
+</ul></li>
+<li>Test-train split was 50-50.</li>
+<li>Task: classify malware into 9 families</li>
+<li>Evaluation metric: LogLoss.
+<ul>
+<li>The final logloss for this task was ~0.003, which is extremely low for a 9-class task.</li>
+</ul></li>
+</ul>
+<div id="quick-check-for-leaks" class="section level5">
+<h5>Quick check for leaks</h5>
+<ul>
+<li>Data was provided in .7z archives. File names looked like hash values.</li>
+<li>There was no useful information found in the file names, since the split was random.</li>
+</ul>
+</div>
+</div>
+<div id="feature-extraction" class="section level4">
+<h4>Feature extraction</h4>
+<div id="data-exploration" class="section level5">
+<h5>Data exploration</h5>
+<ul>
+<li>Each executable is associated with two files. Using the two sizes as features gets 12% error rate.</li>
+<li>Get counts of bytes in each row of the hex dump. This generates 257 features (256 byte values and 1 special symbol). Using these features gets 1.3% error rate.</li>
+<li>Extract information from the disassembly file using regex. Get counts of “sys call” (“api call” in Windows). This gets 2.3% error rate.</li>
+<li>Count assembler operators. This gets 1.5% error rate.</li>
+<li>Count lines which start with “.text”, “.data”, etc. This gets 0.8% error rate.</li>
+<li>Incorporating all the above features results in 0.46% error rate.</li>
+</ul>
+</div>
+<div id="features-n-grams" class="section level5">
+<h5>Features: n-grams</h5>
+<ul>
+<li>Tried 2-, 4-, and 10-grams with feature selection.</li>
+</ul>
+</div>
+<div id="entropy" class="section level5">
+<h5>Entropy</h5>
+<ul>
+<li>Entropy extraction: compute entropy for a sliding window of the byte sequence.</li>
+<li>Entropy is expected to be high if the data is encrypted and compressed. Entropy should be low if the data is structured.</li>
+<li>The motivation for this approach is that some malware is stored in encrypted format when injected into normal executables. When the program starts, the malware extracts itself in the background and then executes. Entropy features can help identify detect encrypted regions in executable, and thus detect some types of malware.</li>
+<li>Feature generation:
+<ul>
+<li>The entropy sequence is of variable length, and the features cannot be used as-is.</li>
+<li>Generate features by taking statistics of the entropy distribution: mean, median, min, max, etc.</li>
+<li>Compute percentiles, inverse percentiles.</li>
+<li>Compute similar features from entropy changes (apply diff first, then compute statistics).</li>
+</ul></li>
+</ul>
+</div>
+<div id="strings" class="section level5">
+<h5>Strings</h5>
+<ul>
+<li>It was possible to extract strings from the hex dump by looking for printable sequences with “” at the end.</li>
+<li>The strings themselves were not used as features.</li>
+<li>Compute string length distribution in the files.</li>
+<li>Extract similar statistics as above (quantiles, percentiles, inverse percentiles, etc.)</li>
+</ul>
+</div>
+</div>
+<div id="feature-processing-and-selection" class="section level4">
+<h4>Feature processing and selection</h4>
+<ul>
+<li>The above steps generate many features, but most of them are probably useless.</li>
+<li>Try different feature selection methods and transformation techniques.</li>
+</ul>
+<div id="feature-transformations-nmf-vs-pca" class="section level5">
+<h5>Feature transformations: NMF vs PCA</h5>
+<ul>
+<li>Both these methods try to factorize an object-feature matrix into the product of two low-rank matrices. This can be thought of as finding a small number of basis vectors in feature space so that every object can be approximated by a linear combination of those vectors. The coefficients of this approximation can be treated as new features for each object.</li>
+<li>NMF requires all the components of the low-rank matrices to be non-negative.</li>
+<li>NMF turned out better for using in random forest models, since non-negativity is essential, and in this case we were working with count data (non-negative by nature).</li>
+<li>An easy way to get more features is to take a log transform (log(X+1)) of the data and compute NMF on the transformed data. This trick implicitly changes the loss that NMF optimizes from MSE to RMSLE (RMSLE is MSE in log space). Since the loss is different, the optimization process focuses on different things than before, and produces different features.</li>
+</ul>
+</div>
+<div id="feature-selection-4-grams" class="section level5">
+<h5>Feature selection: 4-grams</h5>
+<ul>
+<li>We used a small pipeline to select 4-gram features:
+<ul>
+<li>Omit rare features</li>
+<li>Apply linear SVM + L1-penalty</li>
+<li>Threshold random forest feature importances to get final features.</li>
+</ul></li>
+<li>This reduces the number of features from (256+1)^4 to 131, and leads to an error rate of 0.48%.</li>
+</ul>
+</div>
+<div id="feature-selection-10-grams" class="section level5">
+<h5>Feature selection: 10-grams</h5>
+<ul>
+<li>The pipeline for 10-grams is more complicated.
+<ul>
+<li>Use the hashing trick to reduce dimensionality of the original features.</li>
+<li>Omit rare features</li>
+<li>Apply linear SVM + L1-penalty</li>
+<li>Threshold random forest feature importances to get final features.</li>
+</ul></li>
+<li>This reduces the number of features from (256+1)^10 to 861, and leads to an error rate of 0.32%.</li>
+<li>The main problem with feature selection described here is that the 10-grams features were generated independently from the rest of the features. After adding these 10-gram features to the rest and doing selection, we may end up with features that are really good, but contain redundant information. To <em>improve</em> the previous features by adding 10-grams, follow this process:
+<ul>
+<li><ol style="list-style-type: decimal">
+<li>Fit a classifier on the features X (all the features) and obtain OOF predictions for the train set.</li>
+</ol></li>
+<li><ol start="2" style="list-style-type: decimal">
+<li>Sort the objects by their loss and create a new dataset:</li>
+</ol>
+<ul>
+<li>Assign class 1 to top K error-prone objects</li>
+<li>Assign class 0 to all the others</li>
+</ul></li>
+<li><ol start="3" style="list-style-type: decimal">
+<li>Fit a model on the new dataset and select best-performing features. 14 10-gram hashes were selected in this case.</li>
+</ol></li>
+<li>Adding these 14 features resulted in increased performance.</li>
+<li>This method can lead to severe overfitting, but worked out nicely in this case.</li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="models" class="section level4">
+<h4>Models</h4>
+<ul>
+<li>Did not use stacking in this competition (stacking became popular after this competition).</li>
+<li>First used Random Forest. RF needed to be calibrated for log loss manually, so instead moved to GBDT.</li>
+<li>GBTD (XGBoost) was used for all modeling.</li>
+<li>Each person on the team had their own features, models, and parameters. The final solution was a combination.</li>
+<li>Bagging worked well with boosting.
+<ul>
+<li>Took a special approach to bagging. Concatenate train set with a 7x larger set of objects sampled from train with replacement. Use the resulting data set to train xgboost.</li>
+</ul></li>
+<li>Use about half of all features for every tree.</li>
+<li>Average over ~20 runs to account for randomness.</li>
+</ul>
+</div>
+<div id="tricks" class="section level4">
+<h4>Tricks</h4>
+<div id="pseudo-labeling" class="section level5">
+<h5>Pseudo labeling</h5>
+<ul>
+<li>The CV accuracy was quite high (&gt;0.997). We also know that more data is better. So, decided to use testing data for training the models. To accomplish this, need labels for the test data. Use either predicted class, or sample the label from the predicted class distribution.</li>
+<li>To perform cross-validation with pseudo labels: split the data into folds, and before training, concatenate the fold with test data. Then, switch folds and repeat.</li>
+<li>To get predictions for test set, divide the test set into folds and concat train set to each fold of the test set.</li>
+</ul>
+</div>
+<div id="per-class-weighting" class="section level5">
+<h5>Per-class weighting</h5>
+<ul>
+<li>Usually, models are mixed linearly: <span class="math inline">\(y_{w} = {\alpha}y_1 + (1-\alpha)y_2\)</span>.</li>
+<li>In this competition, we tuned coefficients for each class separately: <span class="math inline">\(y^i_{w} = {\alpha}^iy^i_1 + (1-\alpha^i)y_2^i\)</span>. This is similar to stacking with linear model of a special kind at the second level.</li>
+</ul>
+</div>
+<div id="source-code" class="section level5">
+<h5>Source code</h5>
+<ul>
+<li>The code is available at github: <a href="https://github.com/geffy/kaggle-malware" class="uri">https://github.com/geffy/kaggle-malware</a>.</li>
+</ul>
+</div>
+</div>
 </div>
 <div id="walmart-trip-type-classification" class="section level3">
 <h3>Walmart: Trip Type Classification</h3>
@@ -3843,7 +4011,7 @@ final_predictions = meta_model.predict(stacked_test_predictions)</code></pre>
 </ul></li>
 </ul>
 </div>
-<div id="models" class="section level4">
+<div id="models-1" class="section level4">
 <h4>Models</h4>
 <ul>
 <li>Tree models and neural networks capture interactions better than linear models. However, linear models are useful for generating meta-features.</li>
