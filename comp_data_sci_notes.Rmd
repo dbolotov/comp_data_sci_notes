@@ -757,7 +757,52 @@ Notice, that these are *validation* schemes are supposed to be used to estimate 
         - Usually, organisers mostly hard-to-distinguish pairs. This leads to imbalance in item frequency: more frequent items have a higher possibility of being duplicates.
         - We can create a connectivity matrix NxN, where N is the total number of items. If item i and item j appeared in a pair, put 1 in positions ij and ji. Treat the rows of this matrix as vector representations of every item. This means that we can compute similarities between those vectors. This trick works because two items have similar sets of neighbors, they have a high possibility of being duplicates.
 
-### Expedia challenge - TODO
+### Expedia challenge
+#### Problem statement
+- Predict which hotel group a user is going to book based on customer behavior.
+- Data includes what customers searched for, how they interacted with the search results (clicks or books), and whether or not the search result was a travel package.
+
+#### Data leak
+- The competition had a non-trivial and extremely hard to exploit data leak.
+- The feature destination_distance is the distance from a user city to an actual hotel the user clicked or booked. The prediction target is a characteristic of an actual hotel. This feature is very precise, so the destination_distance - user_city pair corresponded to unique hotels.
+- Can treat this pair as a proxy to the target. When encountering this pair in the test set, we can take the train set label as the prediction. This worked nearly perfectly for pairs present in both train and test.
+- Nearly half of the test set consisted of new pairs. It was possible to improve the results using two different ways:
+    - 1. Create features based on counts on corteges similar to destination_distance - user_city pair. E.g., how many hotels of each group for the (user_city, hotel_country, hotel_city) triplet?
+    - 2. Find more matches by finding true coordinates of user cities and hotel cities. This, combined with the destination_distance - user_city pairs, it was possible to find good approximations for coordinates of hotels.
+
+#### Calculating distances
+- Working with geographical coordinates, the distances are geodesic, and are calculated via Haversine formula.
+
+##### Hotel cities algorithm - version 1
+- Suppose we know the coordinates of 3 points, and distances from a 4th point with unknown coordinates to each of the 3 points. Solving a system of 3 equations (one for each distance) gives true coordinates for the 4th point.
+- At first, get the coordinates of 3 cities. Then, iteratively compute distances to each new unknown city.
+- This led to some cities being located in oceans, meaning that this algorithm is not very precise. A rounding error accumulates after every iteration.
+
+##### Hotel cities algorithm - version 2
+- Instead of using 3 equations to compute the coordinates of an unknown, create a giant system of equations from all known distances, with true coordinates being the unknown variables. This results in a system of 100000s of equations and 10000s of unknown variables, but is very sparse.
+- Special methods from scipy can be applied to efficiently solve such a system.
+- This leads to very precise coordinates for hotel and user cities.
+
+##### Feature engineering
+- Using city coordinates and destination distance it's possible to find an approximation of true coordinates of an actual hotel.
+- When we fix user_city and draw a circumference around it with radius = destination_distance, the true location must be somewhere on that circumference.
+- Fix some hotel_city, and draw circumferences from all user cities to that hotel for every given destination distance.
+- A city contains a limited number of hotels. Hotels are on the intersection points. The more circumferences intersect in such points, the higher the probability of a hotel being in that point.
+- The plots produced from the circumferences are messy, but contain clusters of points that can be of use.
+- Using the clusters:
+    - For every city, create a grid around its center (e.g., 10km x 10km, with step size of 100m).
+    - Using training data, for every cell in a grid, count how many hotels of each type is present there. If a circumference goes through a cell, we give +1 to the hotel type corresponding to that circumference.
+    - During inference, we also draw a circumference based on destination distance feature. We see through which grid cells it went through, and use information from those cells to create features (sum of all counters, avg of all counters, max, etc.).
+
+##### Final model
+- All the features directly use the target variable. We cannot use them as-is in training, and should generate them in OOF fashion for train data.
+- We had training data for years 2013 and 2014. To generate features for 2014, use labeled data from 2013, and vice versa.
+- For test features (2015), use all training data.
+- All the features were put into xgboost for 16 hours of training.
+
+##### Results
+- This solution was #4 on the leaderboard.
+- The winning solution had a much higher score than other solutions. It used similar methods, but was able to extract way more signal.
 
 ### Additional material and links
 - [Perfect score script by Oleg Trott](https://www.kaggle.com/olegtrott/the-perfect-score-script) -- used to probe leaderboard

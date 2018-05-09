@@ -1291,8 +1291,86 @@ traintest.T.drop_duplicates()</code></pre></li>
 </ul></li>
 </ul>
 </div>
-<div id="expedia-challenge---todo" class="section level3">
-<h3>Expedia challenge - TODO</h3>
+<div id="expedia-challenge" class="section level3">
+<h3>Expedia challenge</h3>
+<div id="problem-statement" class="section level4">
+<h4>Problem statement</h4>
+<ul>
+<li>Predict which hotel group a user is going to book based on customer behavior.</li>
+<li>Data includes what customers searched for, how they interacted with the search results (clicks or books), and whether or not the search result was a travel package.</li>
+</ul>
+</div>
+<div id="data-leak" class="section level4">
+<h4>Data leak</h4>
+<ul>
+<li>The competition had a non-trivial and extremely hard to exploit data leak.</li>
+<li>The feature destination_distance is the distance from a user city to an actual hotel the user clicked or booked. The prediction target is a characteristic of an actual hotel. This feature is very precise, so the destination_distance - user_city pair corresponded to unique hotels.</li>
+<li>Can treat this pair as a proxy to the target. When encountering this pair in the test set, we can take the train set label as the prediction. This worked nearly perfectly for pairs present in both train and test.</li>
+<li>Nearly half of the test set consisted of new pairs. It was possible to improve the results using two different ways:
+<ul>
+<li><ol style="list-style-type: decimal">
+<li>Create features based on counts on corteges similar to destination_distance - user_city pair. E.g., how many hotels of each group for the (user_city, hotel_country, hotel_city) triplet?</li>
+</ol></li>
+<li><ol start="2" style="list-style-type: decimal">
+<li>Find more matches by finding true coordinates of user cities and hotel cities. This, combined with the destination_distance - user_city pairs, it was possible to find good approximations for coordinates of hotels.</li>
+</ol></li>
+</ul></li>
+</ul>
+</div>
+<div id="calculating-distances" class="section level4">
+<h4>Calculating distances</h4>
+<ul>
+<li>Working with geographical coordinates, the distances are geodesic, and are calculated via Haversine formula.</li>
+</ul>
+<div id="hotel-cities-algorithm---version-1" class="section level5">
+<h5>Hotel cities algorithm - version 1</h5>
+<ul>
+<li>Suppose we know the coordinates of 3 points, and distances from a 4th point with unknown coordinates to each of the 3 points. Solving a system of 3 equations (one for each distance) gives true coordinates for the 4th point.</li>
+<li>At first, get the coordinates of 3 cities. Then, iteratively compute distances to each new unknown city.</li>
+<li>This led to some cities being located in oceans, meaning that this algorithm is not very precise. A rounding error accumulates after every iteration.</li>
+</ul>
+</div>
+<div id="hotel-cities-algorithm---version-2" class="section level5">
+<h5>Hotel cities algorithm - version 2</h5>
+<ul>
+<li>Instead of using 3 equations to compute the coordinates of an unknown, create a giant system of equations from all known distances, with true coordinates being the unknown variables. This results in a system of 100000s of equations and 10000s of unknown variables, but is very sparse.</li>
+<li>Special methods from scipy can be applied to efficiently solve such a system.</li>
+<li>This leads to very precise coordinates for hotel and user cities.</li>
+</ul>
+</div>
+<div id="feature-engineering" class="section level5">
+<h5>Feature engineering</h5>
+<ul>
+<li>Using city coordinates and destination distance it’s possible to find an approximation of true coordinates of an actual hotel.</li>
+<li>When we fix user_city and draw a circumference around it with radius = destination_distance, the true location must be somewhere on that circumference.</li>
+<li>Fix some hotel_city, and draw circumferences from all user cities to that hotel for every given destination distance.</li>
+<li>A city contains a limited number of hotels. Hotels are on the intersection points. The more circumferences intersect in such points, the higher the probability of a hotel being in that point.</li>
+<li>The plots produced from the circumferences are messy, but contain clusters of points that can be of use.</li>
+<li>Using the clusters:
+<ul>
+<li>For every city, create a grid around its center (e.g., 10km x 10km, with step size of 100m).</li>
+<li>Using training data, for every cell in a grid, count how many hotels of each type is present there. If a circumference goes through a cell, we give +1 to the hotel type corresponding to that circumference.</li>
+<li>During inference, we also draw a circumference based on destination distance feature. We see through which grid cells it went through, and use information from those cells to create features (sum of all counters, avg of all counters, max, etc.).</li>
+</ul></li>
+</ul>
+</div>
+<div id="final-model" class="section level5">
+<h5>Final model</h5>
+<ul>
+<li>All the features directly use the target variable. We cannot use them as-is in training, and should generate them in OOF fashion for train data.</li>
+<li>We had training data for years 2013 and 2014. To generate features for 2014, use labeled data from 2013, and vice versa.</li>
+<li>For test features (2015), use all training data.</li>
+<li>All the features were put into xgboost for 16 hours of training.</li>
+</ul>
+</div>
+<div id="results" class="section level5">
+<h5>Results</h5>
+<ul>
+<li>This solution was #4 on the leaderboard.</li>
+<li>The winning solution had a much higher score than other solutions. It used similar methods, but was able to extract way more signal.</li>
+</ul>
+</div>
+</div>
 </div>
 <div id="additional-material-and-links-5" class="section level3">
 <h3>Additional material and links</h3>
@@ -2775,7 +2853,7 @@ test_path = 'data/test.csv'</code></pre></li>
 <li>Use the test LB to test: check if improvements on val set lead to improvements on the LB.</li>
 </ul>
 </div>
-<div id="feature-engineering" class="section level4">
+<div id="feature-engineering-1" class="section level4">
 <h4>Feature engineering</h4>
 <ul>
 <li>The type of problem defines the feature engineering. The following is a list of possible features, and example competitions where they were used.
@@ -3983,7 +4061,7 @@ final_predictions = meta_model.predict(stacked_test_predictions)</code></pre>
 </div>
 <div id="walmart-trip-type-classification" class="section level3">
 <h3>Walmart: Trip Type Classification</h3>
-<div id="problem-statement" class="section level4">
+<div id="problem-statement-1" class="section level4">
 <h4>Problem statement</h4>
 <ul>
 <li>Given data about purchases, classify it into 38 distinct trip types.</li>
@@ -4017,7 +4095,7 @@ final_predictions = meta_model.predict(stacked_test_predictions)</code></pre>
 <li>Tree models and neural networks capture interactions better than linear models. However, linear models are useful for generating meta-features.</li>
 </ul>
 </div>
-<div id="feature-engineering-1" class="section level4">
+<div id="feature-engineering-2" class="section level4">
 <h4>Feature engineering</h4>
 <ul>
 <li>One interesting observation is that one FinelineNumber can belong to multiple department descriptions. This means that FinelineNumber is not as detailed as originally thought.</li>
@@ -4034,7 +4112,7 @@ final_predictions = meta_model.predict(stacked_test_predictions)</code></pre>
 <li>The solution was focused on really understanding the problem and properly validating.</li>
 </ul>
 </div>
-<div id="problem-statement-1" class="section level4">
+<div id="problem-statement-2" class="section level4">
 <h4>Problem statement</h4>
 <ul>
 <li>310,000 shoppers (160K train, 150k test)</li>
